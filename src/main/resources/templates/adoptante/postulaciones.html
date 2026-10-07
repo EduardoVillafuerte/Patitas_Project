@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis postulaciones')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <h1>💌 Mis postulaciones</h1>
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+  <p class="muted" th:if="${#lists.isEmpty(postulaciones)}">Aún no has postulado. <a th:href="@{/adoptante/catalogo}">Ver mascotas</a></p>
+  <div class="table-wrap" th:if="${!#lists.isEmpty(postulaciones)}">
+    <table>
+      <thead><tr><th>Mascota</th><th>Fecha</th><th>Compatibilidad</th><th>Estado</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr th:each="p : ${postulaciones}">
+          <td th:text="${p.mascota.nombre}"></td>
+          <td th:text="${#temporals.format(p.fecha, 'dd/MM/yyyy')}"></td>
+          <td th:text="${p.scoreAlPostular} + '%'"></td>
+          <td><span th:replace="~{fragments/layout :: estado(${p.estado})}"></span></td>
+          <td class="small" th:text="${p.motivoRechazo}"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>📸 Seguimiento post-adopción</h2>
+  <p class="muted" th:if="${#lists.isEmpty(seguimientos)}">Cuando una adopción se complete, aquí aparecerán las entregas de evidencia a los 30, 90 y 180 días.</p>
+  <div class="panel" th:each="s : ${seguimientos}">
+    <div class="row">
+      <div>
+        <strong th:text="'Día ' + ${s.diasPostAdopcion} + ' con ' + ${s.postulacion.mascota.nombre}"></strong>
+        <span class="muted small" th:text="'· fecha límite ' + ${#temporals.format(s.fechaLimite, 'dd/MM/yyyy')}"></span>
+      </div>
+      <span th:replace="~{fragments/layout :: estado(${s.estado})}"></span>
+    </div>
+    <div class="alert err" th:if="${s.estado.name() == 'VENCIDO'}" style="margin-top:.75rem">
+      Pasó la fecha límite. Sube tu evidencia cuanto antes; el refugio ya fue alertado.
+    </div>
+    <form th:if="${s.estado.name() != 'ENTREGADO'}" th:action="@{/adoptante/seguimientos/{id}/evidencia(id=${s.id})}"
+          method="post" enctype="multipart/form-data">
+      <label th:for="'c' + ${s.id}">Cómo está tu mascota</label>
+      <textarea th:id="'c' + ${s.id}" name="comentario" maxlength="1000"></textarea>
+      <label th:for="'f' + ${s.id}">Foto</label>
+      <input th:id="'f' + ${s.id}" type="file" name="foto" accept="image/*">
+      <p><button class="btn" type="submit">Enviar evidencia</button></p>
+    </form>
+    <p class="small muted" th:if="${s.estado.name() == 'ENTREGADO'}" th:text="${s.comentario}"></p>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

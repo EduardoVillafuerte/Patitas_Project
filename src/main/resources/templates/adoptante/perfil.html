@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mi perfil')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container medium">
+
+  <!-- CABECERA: así te verá el refugio. Se llena con lo que ya guardaste. -->
+  <section class="perfil-cabecera">
+    <div class="avatar" aria-hidden="true" th:text="${usuario.inicial}">A</div>
+    <div>
+      <h1 th:text="${usuario.nombre}">Tu nombre</h1>
+      <p class="muted" th:if="${usuario.edad != null or usuario.ciudad != null}">
+        <span th:if="${usuario.edad != null}" th:text="'🎂 ' + ${usuario.edad} + ' años'"></span>
+        <span th:if="${usuario.edad != null and usuario.ciudad != null}"> · </span>
+        <span th:if="${usuario.ciudad != null}" th:text="'📍 ' + ${usuario.ciudad}"></span>
+      </p>
+      <p class="muted" th:unless="${usuario.edad != null or usuario.ciudad != null}">
+        ¡Cuéntanos quién eres! Los refugios prefieren dar mascotas a personas que conocen un poco. 💚
+      </p>
+      <div class="chips" th:if="${!#lists.isEmpty(usuario.hobbiesLista)}">
+        <span class="tag hobby" th:each="h : ${usuario.hobbiesLista}" th:text="${h}"></span>
+      </div>
+    </div>
+  </section>
+
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+  <p class="muted">Los campos con <span class="req">*</span> son obligatorios. Tu estilo de vida se usa para calcular qué tan bien encajas con cada mascota.</p>
+
+  <form class="panel" th:action="@{/adoptante/perfil}" th:object="${form}" method="post">
+
+    <fieldset>
+      <legend>🙋 Sobre ti</legend>
+
+      <label for="nombre">Nombre completo <span class="req">*</span></label>
+      <input id="nombre" type="text" th:field="*{nombre}" th:errorclass="invalid" required maxlength="80" autocomplete="name">
+      <div class="field-error" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+
+      <div class="cols">
+        <div>
+          <label for="fechaNacimiento">Fecha de nacimiento <span class="req">*</span></label>
+          <input id="fechaNacimiento" type="date" th:field="*{fechaNacimiento}" th:errorclass="invalid" required
+                 min="1900-01-01" th:attr="max=${fechaMax}" aria-describedby="ayudaFecha">
+          <p class="hint" id="ayudaFecha">Debes ser mayor de 18 años para adoptar.</p>
+          <div class="field-error" th:if="${#fields.hasErrors('fechaNacimiento')}" th:errors="*{fechaNacimiento}"></div>
+        </div>
+        <div>
+          <label for="ciudad">Ciudad <span class="req">*</span></label>
+          <input id="ciudad" type="text" th:field="*{ciudad}" th:errorclass="invalid" required maxlength="60"
+                 autocomplete="address-level2" placeholder="Quito">
+          <div class="field-error" th:if="${#fields.hasErrors('ciudad')}" th:errors="*{ciudad}"></div>
+        </div>
+      </div>
+
+      <div class="cols">
+        <div>
+          <label for="ocupacion">A qué te dedicas</label>
+          <input id="ocupacion" type="text" th:field="*{ocupacion}" th:errorclass="invalid" maxlength="60"
+                 placeholder="Estudiante, diseñadora, ingeniero...">
+          <div class="field-error" th:if="${#fields.hasErrors('ocupacion')}" th:errors="*{ocupacion}"></div>
+        </div>
+        <div>
+          <label for="telefono">Teléfono de contacto</label>
+          <input id="telefono" type="tel" th:field="*{telefono}" th:errorclass="invalid" maxlength="20"
+                 autocomplete="tel" aria-describedby="ayudaTel" placeholder="0991234567">
+          <p class="hint" id="ayudaTel">Solo lo verá el refugio cuando apruebe tu postulación.</p>
+          <div class="field-error" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}"></div>
+        </div>
+      </div>
+
+      <label for="hobbies">Tus hobbies</label>
+      <input id="hobbies" type="text" th:field="*{hobbies}" th:errorclass="invalid" maxlength="200"
+             placeholder="Senderismo, cocinar, videojuegos..." aria-describedby="ayudaHobbies">
+      <p class="hint" id="ayudaHobbies">Sepáralos con comas o toca una sugerencia:</p>
+      <div class="chips" role="group" aria-label="Sugerencias de hobbies">
+        <button type="button" class="chip-btn" data-hobby="Senderismo">🥾 Senderismo</button>
+        <button type="button" class="chip-btn" data-hobby="Correr">🏃 Correr</button>
+        <button type="button" class="chip-btn" data-hobby="Leer">📚 Leer</button>
+        <button type="button" class="chip-btn" data-hobby="Cocinar">🍳 Cocinar</button>
+        <button type="button" class="chip-btn" data-hobby="Videojuegos">🎮 Videojuegos</button>
+        <button type="button" class="chip-btn" data-hobby="Música">🎵 Música</button>
+        <button type="button" class="chip-btn" data-hobby="Viajar">✈️ Viajar</button>
+        <button type="button" class="chip-btn" data-hobby="Arte">🎨 Arte</button>
+      </div>
+      <div class="field-error" th:if="${#fields.hasErrors('hobbies')}" th:errors="*{hobbies}"></div>
+
+      <label for="sobreMi">Cuéntale al refugio sobre ti</label>
+      <textarea id="sobreMi" th:field="*{sobreMi}" th:errorclass="invalid" maxlength="500"
+                placeholder="Cómo es tu día a día, por qué quieres adoptar, qué tipo de compañero buscas..."></textarea>
+      <div class="field-error" th:if="${#fields.hasErrors('sobreMi')}" th:errors="*{sobreMi}"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>🏡 Tu hogar y estilo de vida</legend>
+
+      <label for="horas">Horas al día que estarías fuera de casa <span class="req">*</span></label>
+      <input id="horas" type="number" min="0" max="24" th:field="*{horasFueraCasa}" th:errorclass="invalid" required aria-describedby="ayudaHoras">
+      <p class="hint" id="ayudaHoras">Cuenta trabajo, estudio y traslados (0 a 24).</p>
+      <div class="field-error" th:if="${#fields.hasErrors('horasFueraCasa')}" th:errors="*{horasFueraCasa}"></div>
+
+      <label for="vivienda">Tipo de vivienda <span class="req">*</span></label>
+      <select id="vivienda" th:field="*{tipoVivienda}" th:errorclass="invalid" required>
+        <option value="">Elige una opción</option>
+        <option th:each="v : ${viviendas}" th:value="${v}" th:text="${v.label}"></option>
+      </select>
+      <div class="field-error" th:if="${#fields.hasErrors('tipoVivienda')}" th:errors="*{tipoVivienda}"></div>
+
+      <label for="presupuesto">Presupuesto mensual para la mascota (USD) <span class="req">*</span></label>
+      <input id="presupuesto" type="number" min="0" step="1" th:field="*{presupuestoMensual}" th:errorclass="invalid" required>
+      <div class="field-error" th:if="${#fields.hasErrors('presupuestoMensual')}" th:errors="*{presupuestoMensual}"></div>
+
+      <label for="experiencia">Experiencia con mascotas <span class="req">*</span></label>
+      <select id="experiencia" th:field="*{experiencia}" th:errorclass="invalid" required>
+        <option value="">Elige una opción</option>
+        <option th:each="x : ${experiencias}" th:value="${x}" th:text="${x.label}"></option>
+      </select>
+      <div class="field-error" th:if="${#fields.hasErrors('experiencia')}" th:errors="*{experiencia}"></div>
+
+      <label class="check"><input type="checkbox" th:field="*{tieneNinos}"> Hay niños en casa</label>
+    </fieldset>
+
+    <p style="margin-top:1.5rem"><button class="btn sun lg" type="submit">💾 Guardar mi perfil</button></p>
+  </form>
+</main>
+<script>
+  // Al tocar una sugerencia, se agrega el hobby al campo (sin repetirlo).
+  const campo = document.getElementById('hobbies');
+  document.querySelectorAll('.chip-btn').forEach(function (boton) {
+    boton.addEventListener('click', function () {
+      const hobby = boton.dataset.hobby;
+      const actuales = campo.value.split(',').map(function (h) { return h.trim().toLowerCase(); });
+      if (actuales.indexOf(hobby.toLowerCase()) === -1) {
+        campo.value = campo.value.trim() === '' ? hobby : campo.value.replace(/[,\s]+$/, '') + ', ' + hobby;
+      }
+      campo.focus();
+    });
+  });
+</script>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

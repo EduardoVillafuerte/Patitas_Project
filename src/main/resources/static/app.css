@@ -169,7 +169,7 @@ tbody tr:hover { background: #f7fbf9; }
 .auth-cabecera h1 { margin-bottom: .25rem; }
 .auth-cabecera p { margin: 0; color: var(--muted); }
 
-/* ---------- Login: dos columnas (bienvenida + formulario) ---------- */
+/* ---------- Login: dos columnas (bienvenida + formulario) */
 .container.login-page { max-width: 900px; padding-top: 2.5rem; }
 .login-card { display: grid; grid-template-columns: 1fr 1.1fr; border-radius: 24px; overflow: hidden;
   background: var(--paper); box-shadow: var(--shadow-hover); border: 1px solid var(--line); }
@@ -194,7 +194,7 @@ tbody tr:hover { background: #f7fbf9; }
   color: var(--teal); font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; padding: .3rem .5rem; border-radius: 8px; }
 .ver-clave:hover { background: var(--mint); }
 
-/* Cuentas de prueba (borrar este bloque junto con el HTML antes de publicar) */
+/* Cuentas de prueba  */
 details.demo { background: var(--butter); border-radius: 12px; padding: .6rem .9rem; margin-top: 1rem; }
 details.demo summary { cursor: pointer; font-weight: 700; color: var(--pine); }
 details.demo .hint { margin: .5rem 0; }
@@ -207,3 +207,80 @@ details.demo .hint { margin: .5rem 0; }
   .login-lema { margin-bottom: 0; font-size: 1.3rem; }
   .login-form { padding: 1.5rem 1.25rem; }
 }
+
+/* INICIO · ADOPTANTE */
+
+/* Perfil: cabecera con avatar */
+.perfil-cabecera { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.25rem;
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow);
+  border-left: 8px solid var(--coral); }
+.avatar { width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 2.3rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--coral), var(--grape)); flex-shrink: 0; }
+.perfil-cabecera h1 { margin: 0; font-size: 1.7rem; }
+.perfil-cabecera p { margin: .15rem 0 .4rem; }
+.tag.hobby { background: var(--peach); border-color: #f5c9a6; font-size: .85rem; }
+
+/*Compatibilidad (catálogo, detalle; también lo usa el refugio)*/
+.score { font-weight: 800; font-size: 1.1rem; padding: .1rem .7rem; border-radius: 999px; color: #fff; }
+.score.high { background: var(--score-high); }
+.score.mid { background: var(--score-mid); }
+.score.low { background: var(--alert); }
+.meter { height: 8px; background: #e3ebe6; border-radius: 999px; overflow: hidden; }
+.meter span { display: block; height: 100%; border-radius: 999px; }
+.meter .high { background: var(--score-high); }
+.meter .mid { background: var(--score-mid); }
+.meter .low { background: var(--alert); }
+
+/*Detalle de la mascota*/
+.grande .foto { aspect-ratio: 16 / 10; border-radius: var(--radius); }
+ul.motivos { margin: .25rem 0 0; padding-left: 1.1rem; }
+.ficha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .6rem; margin: .5rem 0 1rem; }
+.ficha-item { border-radius: 12px; padding: .6rem .8rem; font-size: .9rem; }
+.ficha-item strong { display: block; font-size: 1.05rem; }
+.ficha-item.mint { background: var(--mint); }
+.ficha-item.peach { background: var(--peach); }
+.ficha-item.sky { background: var(--skybg); }
+.ficha-item.lilac { background: var(--lilac); }
+
+@media (max-width: 600px) {
+  .perfil-cabecera { flex-direction: column; text-align: center; }
+}
+
+/* INICIO · ADOPTANTE */
+
+/* Perfil: cabecera con avatar  */
+.perfil-cabecera { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.25rem;
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow);
+  border-left: 8px solid var(--coral); }
+.avatar { width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 2.3rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--coral), var(--grape)); flex-shrink: 0; }
+.perfil-cabecera h1 { margin: 0; font-size: 1.7rem; }
+.perfil-cabecera p { margin: .15rem 0 .4rem; }
+.tag.hobby { background: var(--peach); border-color: #f5c9a6; font-size: .85rem; } /* también lo usa el refugio */
+
+/*  Compatibilidad (catálogo, detalle; también lo usa el refugio)  */
+.score { font-weight: 800; font-size: 1.1rem; padding: .1rem .7rem; border-radius: 999px; color: #fff; }
+.score.high { background: var(--score-high); }
+.score.mid { background: var(--score-mid); }
+.score.low { background: var(--alert); }
+.meter { height: 8px; background: #e3ebe6; border-radius: 999px; overflow: hidden; }
+.meter span { display: block; height: 100%; border-radius: 999px; }
+.meter .high { background: var(--score-high); }
+.meter .mid { background: var(--score-mid); }
+.meter .low { background: var(--alert); }
+
+/*Detalle de la mascota*/
+.grande .foto { aspect-ratio: 16 / 10; border-radius: var(--radius); }
+ul.motivos { margin: .25rem 0 0; padding-left: 1.1rem; }
+.ficha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .6rem; margin: .5rem 0 1rem; }
+.ficha-item { border-radius: 12px; padding: .6rem .8rem; font-size: .9rem; }
+.ficha-item strong { display: block; font-size: 1.05rem; }
+.ficha-item.mint { background: var(--mint); }
+.ficha-item.peach { background: var(--peach); }
+.ficha-item.sky { background: var(--skybg); }
+.ficha-item.lilac { background: var(--lilac); }
+
+@media (max-width: 600px) {
+  .perfil-cabecera { flex-direction: column; text-align: center; }
+}
+

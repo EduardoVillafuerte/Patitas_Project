@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Detalle')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+  <a th:href="@{/adoptante/catalogo}">← Volver al catálogo</a>
+
+  <div class="cols" style="margin-top:1rem">
+    <div>
+      <div class="grande"><div th:replace="~{fragments/layout :: foto(${item.mascota})}"></div></div>
+    </div>
+    <div>
+      <div class="row">
+        <h1 th:text="${item.mascota.nombre}">Nombre</h1>
+        <span class="score" th:text="${item.score} + '% compatible'"
+              th:classappend="${item.score ge 75 ? 'high' : (item.score ge 50 ? 'mid' : 'low')}"></span>
+      </div>
+      <div class="meter" aria-hidden="true">
+        <span th:classappend="${item.score ge 75 ? 'high' : (item.score ge 50 ? 'mid' : 'low')}"
+              th:style="'width:' + ${item.score} + '%'"></span>
+      </div>
+      <p class="muted" style="margin-top:.5rem" th:text="${item.mascota.especie} + ' · ' + ${item.mascota.edadAnios} + ' años'"></p>
+      <p th:text="${item.mascota.descripcion}"></p>
+      <div class="chips"><span class="tag" th:each="e : ${item.mascota.etiquetas}" th:text="${e.label}"></span></div>
+
+      <h3 style="margin-top:1rem">💡 ¿Por qué este porcentaje?</h3>
+      <ul class="motivos"><li th:each="mo : ${item.motivos}" th:text="${mo}"></li></ul>
+
+      <h3 style="margin-top:1rem">📋 Ficha</h3>
+      <div class="ficha-grid">
+        <div class="ficha-item peach">⚡ Energía<strong th:text="${item.mascota.nivelEnergia} + ' / 5'"></strong></div>
+        <div class="ficha-item sky">💬 Sociabilidad<strong th:text="${item.mascota.sociabilidad} + ' / 5'"></strong></div>
+        <div class="ficha-item lilac">💵 Presupuesto mínimo<strong th:text="'$' + ${#numbers.formatDecimal(item.mascota.presupuestoMinimo, 1, 0)} + '/mes'"></strong></div>
+        <div class="ficha-item mint">💉 Salud
+          <strong th:text="${item.mascota.vacunado} ? 'Vacunado' : 'Sin vacunas'"></strong>
+          <span th:text="${item.mascota.esterilizado} ? 'Esterilizado' : 'No esterilizado'"></span>
+        </div>
+      </div>
+      <p class="small muted" th:text="${item.mascota.fichaMedica}"></p>
+
+      <form class="panel" th:if="${!yaPostulo and !usuario.baneado and item.mascota.estado.name() == 'DISPONIBLE'}" th:action="@{/adoptante/mascotas/{id}/postular(id=${item.mascota.id})}" method="post">
+        <label for="mensaje">Cuéntale al refugio por qué quieres adoptar</label>
+        <textarea id="mensaje" name="mensaje" maxlength="1000" placeholder="Tu mensaje se envía junto con tu perfil."></textarea>
+        <p><button class="btn sun lg" type="submit">💚 Postular a adoptar</button></p>
+      </form>
+      <div class="alert warn" th:if="${yaPostulo}">Ya tienes una postulación en curso para esta mascota.</div>
+      <div class="alert err" role="alert" th:if="${usuario.baneado}">Tu cuenta está en la lista negra: no puedes postular a adopciones.</div>
+      <div class="alert warn" th:if="${!yaPostulo and !usuario.baneado and item.mascota.estado.name() != 'DISPONIBLE'}">Esta mascota ya no está disponible.</div>
+    </div>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

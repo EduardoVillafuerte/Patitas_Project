@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mi catálogo')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <h1>Mascotas para ti 💚</h1>
+  <p class="muted" th:text="'Hola, ' + ${usuario.nombre} + '. Están ordenadas de mayor a menor compatibilidad con tu perfil.'"></p>
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+  <div class="alert err" th:if="${usuario.baneado}">
+    Tu cuenta está en la lista negra. Puedes ver el catálogo, pero no postular a adopciones.
+  </div>
+  <p class="muted" th:if="${#lists.isEmpty(items)}">No hay mascotas disponibles por ahora.</p>
+
+  <div class="grid">
+    <article class="card" th:each="item : ${items}">
+      <div th:replace="~{fragments/layout :: foto(${item.mascota})}"></div>
+      <div class="body">
+        <div class="row">
+          <h3 th:text="${item.mascota.nombre}">Nombre</h3>
+          <span class="score" th:text="${item.score} + '%'"
+                th:classappend="${item.score ge 75 ? 'high' : (item.score ge 50 ? 'mid' : 'low')}"></span>
+        </div>
+        <div class="meter" aria-hidden="true">
+          <span th:classappend="${item.score ge 75 ? 'high' : (item.score ge 50 ? 'mid' : 'low')}"
+                th:style="'width:' + ${item.score} + '%'"></span>
+        </div>
+        <p class="muted small" th:text="${item.mascota.especie} + ' · ' + ${item.mascota.edadAnios} + ' años'"></p>
+        <div class="chips"><span class="tag" th:each="e : ${item.mascota.etiquetas}" th:text="${e.label}"></span></div>
+        <a class="btn" style="margin-top:auto;text-align:center" th:href="@{/adoptante/mascotas/{id}(id=${item.mascota.id})}">Conocer más</a>
+      </div>
+    </article>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

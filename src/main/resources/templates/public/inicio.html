@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <section class="hero">
+    <div class="hero-emoji" aria-hidden="true">🐶 🐱 🐰</div>
+    <h1>Encuentra la mascota que encaja con tu vida</h1>
+    <p>Cada mascota tiene necesidades distintas. Completa tu perfil y te mostramos primero
+       las que mejor se adaptan a tu casa, tu tiempo y tu presupuesto.</p>
+    <p sec:authorize="isAnonymous()">
+      <a class="btn sun lg" th:href="@{/registro}">Crear cuenta</a>
+      <a class="btn line lg" th:href="@{/login}">Ingresar</a>
+    </p>
+  </section>
+
+  <h2 style="margin-top:0">🐾 Mascotas disponibles</h2>
+  <p class="muted" th:if="${#lists.isEmpty(mascotas)}">Todavía no hay mascotas disponibles.</p>
+  <div class="grid">
+    <article class="card" th:each="m : ${mascotas}">
+      <div th:replace="~{fragments/layout :: foto(${m})}"></div>
+      <div class="body">
+        <h3 th:text="${m.nombre}">Nombre</h3>
+        <p class="muted small" th:text="${m.especie} + ', ' + ${m.edadAnios} + ' años'"></p>
+        <p th:text="${m.descripcion}"></p>
+        <div class="chips"><span class="tag" th:each="e : ${m.etiquetas}" th:text="${e.label}"></span></div>
+      </div>
+    </article>
+  </div>
+  <p class="muted" sec:authorize="isAnonymous()">Inicia sesión como adoptante para ver tu porcentaje de compatibilidad.</p>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

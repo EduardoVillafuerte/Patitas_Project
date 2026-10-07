@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(titulo)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${titulo} + ' | Patitas'">Patitas</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<!-- BARRA DE NAVEGACIÓN: sec:authorize muestra cada enlace solo al rol que corresponde. -->
+<nav th:fragment="nav" class="nav" aria-label="Navegación principal">
+  <a class="brand" th:href="@{/}"><span aria-hidden="true">🐾</span> Patitas<span class="dot">.</span></a>
+
+  <a th:href="@{/public/inicio}">Mascotas</a>
+
+  <th:block sec:authorize="hasRole('ADOPTANTE')">
+    <a th:href="@{/adoptante/catalogo}">Mi catálogo</a>
+    <a th:href="@{/adoptante/postulaciones}">Mis postulaciones</a>
+    <a th:href="@{/adoptante/perfil}">Mi perfil</a>
+  </th:block>
+
+  <th:block sec:authorize="hasRole('REFUGIO')">
+    <a th:href="@{/refugio/panel}">Mi refugio</a>
+    <a th:href="@{/refugio/postulaciones}">Postulaciones</a>
+  </th:block>
+
+  <th:block sec:authorize="hasRole('ADMIN')">
+    <a th:href="@{/admin/panel}">Administración</a>
+  </th:block>
+
+  <th:block sec:authorize="isAnonymous()">
+    <a th:href="@{/login}">Ingresar</a>
+    <a th:href="@{/registro}">Crear cuenta</a>
+  </th:block>
+
+  <th:block sec:authorize="isAuthenticated()">
+    <span class="who" sec:authentication="name">usuario</span>
+    <!-- El logout es POST (con token CSRF automático gracias a th:action). -->
+    <form th:action="@{/logout}" method="post"><button type="submit">Salir</button></form>
+  </th:block>
+</nav>
+
+<!-- MENSAJES FLASH: role="status"/"alert" hace que los lectores de pantalla los anuncien. -->
+<div th:fragment="mensajes">
+  <div class="alert ok" role="status" th:if="${ok}" th:text="${ok}"></div>
+  <div class="alert err" role="alert" th:if="${error}" th:text="${error}"></div>
+</div>
+
+<!-- FOTO de la mascota. Si no tiene imagen, muestra el emoji de su especie sobre un fondo de colores. -->
+<div th:fragment="foto(m)" class="foto">
+  <img th:if="${m.tieneImagen()}" th:src="@{/public/mascotas/{id}/imagen(id=${m.id})}" th:alt="${m.nombre}">
+  <span th:unless="${m.tieneImagen()}" aria-hidden="true"
+        th:text="${#strings.toLowerCase(m.especie) == 'perro'} ? '🐶' : (${#strings.toLowerCase(m.especie) == 'gato'} ? '🐱' : '🐾')">🐾</span>
+</div>
+
+<!-- ETIQUETA DE ESTADO legible: convierte EN_PROCESO -> "En proceso" (la clase CSS conserva el valor original). -->
+<span th:fragment="estado(valor)" class="tag" th:classappend="'estado-' + ${valor}"
+      th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(valor, '_', ' ')))}">Estado</span>
+
+<!-- PIE DE PÁGINA (se agrega al final de cada página con th:replace) -->
+<footer th:fragment="pie" class="pie">
+  <p>Hecho con <span aria-hidden="true">💚</span> para que cada patita encuentre un hogar · Proyecto universitario Patitas</p>
+</footer>
+
+</body>
+</html>
