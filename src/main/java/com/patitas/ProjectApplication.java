@@ -1,4 +1,4 @@
-package com.patitas.project;
+package com.patitas;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
