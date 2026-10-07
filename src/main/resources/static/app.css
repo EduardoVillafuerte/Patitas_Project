@@ -1,0 +1,209 @@
+
+/* ---------- Variables (colores, sombras, radios) ---------- */
+:root {
+  --pine: #17403a;  --pine-2: #245e55;
+  --teal: #0f766e;  --teal-dark: #115e59;
+  --coral: #c2410c; --coral-dark: #9a3412;
+  --grape: #6d28d9; --sky: #1d6fa5;
+  --sun: #f4b942;
+
+  --bg: #f4faf6;    --mist: #f4faf6;  --paper: #ffffff;
+  --ink: #1b2422;   --muted: #566560;
+  --mint: #dcf5ea;  --peach: #ffe8d6; --skybg: #dbf0fb; --lilac: #ebe3fc; --butter: #fff1c9;
+
+  --alert: #c62d2d; --alert-bg: #fdecec; --ok-bg: #e4f3ea;
+  --line: #d6e3dc;  --radius: 14px;
+  --score-high: #1a7340;  /* 5.9:1 con blanco */
+  --score-mid: #8a5a00;   /* 5.9:1 con blanco */
+  --field-border: #6f7f7a;/* 4.2:1 contra blanco */
+  --shadow: 0 2px 8px rgba(23, 64, 58, .08);
+  --shadow-hover: 0 12px 28px rgba(23, 64, 58, .16);
+}
+
+/* ---------- Base de la página ---------- */
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); min-height: 100vh; display: flex; flex-direction: column;
+  font-family: "Nunito", "Quicksand", "Avenir Next", "Segoe UI", system-ui, sans-serif; line-height: 1.55;
+  background: linear-gradient(180deg, #e6f6ee 0, var(--bg) 320px, #fff6e5 100%); }
+main { flex: 1; width: 100%; }
+h1, h2, h3 { letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 .5rem; color: var(--pine); }
+h1 { font-size: 2rem; font-weight: 800; }
+h2 { font-size: 1.35rem; font-weight: 800; margin-top: 2rem; padding-left: .7rem; border-left: 6px solid var(--sun); }
+h3 { font-size: 1.1rem; font-weight: 700; }
+a { color: var(--teal); }
+:focus-visible { outline: 3px solid var(--pine-2); outline-offset: 2px; }
+
+/* ---------- Navegación ---------- */
+.nav { background: linear-gradient(90deg, var(--pine), var(--teal)); color: #fff; display: flex; align-items: center;
+  gap: .4rem 1rem; padding: .7rem 1.5rem; flex-wrap: wrap; box-shadow: 0 3px 12px rgba(23, 64, 58, .3);
+  position: sticky; top: 0; z-index: 10; }
+.nav a, .nav button { color: #fff; text-decoration: none; font-size: .95rem; background: none; border: 0;
+  cursor: pointer; font-family: inherit; padding: .3rem .7rem; border-radius: 999px; }
+.nav a:hover, .nav button:hover { background: rgba(255, 255, 255, .2); }
+.nav .brand { font-weight: 800; font-size: 1.25rem; margin-right: auto; padding-left: 0; }
+.nav .brand:hover { background: none; }
+.nav .brand .dot { color: var(--sun); }
+.nav form { margin: 0; }
+.nav .who { opacity: .92; font-size: .85rem; }
+.nav :focus-visible { outline-color: #fff; }
+
+/* ---------- Contenedores y utilidades ---------- */
+.container { max-width: 1040px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+.narrow { max-width: 460px; }
+.container.medium { max-width: 720px; }
+.muted { color: var(--muted); }
+.small { font-size: .85rem; }
+.centrado { text-align: center; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.inline { display: inline; margin: 0; }
+
+/* ---------- Mensajes ---------- */
+.alert { padding: .8rem 1rem; border-radius: var(--radius); margin-bottom: 1rem; border: 1px solid var(--line); }
+.alert::before { margin-right: .5rem; }
+.alert.ok { background: var(--ok-bg); border-color: #b9dcc6; }
+.alert.ok::before { content: "✅"; }
+.alert.err { background: var(--alert-bg); border-color: #f0b8b8; color: #7d1a1a; }
+.alert.err::before { content: "⚠️"; }
+.alert.warn { background: var(--butter); border-color: #ecd48a; }
+.alert.warn::before { content: "⏳"; }
+.alert.red { background: var(--alert); color: #fff; border-color: var(--alert); font-weight: 600; }
+.alert.red::before { content: "🚨"; }
+.alert.info { background: var(--skybg); border-color: #a9d3ec; }
+.alert.info::before { content: "💡"; }
+
+/* ---------- Paneles ---------- */
+.panel { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem;
+  margin-bottom: 1.25rem; box-shadow: var(--shadow); }
+
+/* ---------- Tarjetas de mascota (portada, catálogo y panel del refugio) ---------- */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.25rem; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  display: flex; flex-direction: column; box-shadow: var(--shadow); transition: transform .15s ease, box-shadow .15s ease; }
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+.card .body { padding: 1rem; display: flex; flex-direction: column; gap: .5rem; flex: 1; }
+
+/* Foto de la mascota (si no hay foto, fondo de colores con el emoji de la especie) */
+.foto { aspect-ratio: 4 / 3; background: linear-gradient(135deg, var(--mint), var(--skybg) 55%, var(--lilac));
+  display: flex; align-items: center; justify-content: center; font-size: 3.8rem; overflow: hidden; }
+.foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---------- Etiquetas y estados ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+.tag { display: inline-block; font-size: .78rem; padding: .12rem .6rem; border-radius: 999px;
+  background: var(--lilac); border: 1px solid #d3c5f5; margin: 0 .25rem .25rem 0; }
+.chips .tag { margin: 0; }
+.tag.estado-DISPONIBLE, .tag.estado-ACTIVO, .tag.estado-APROBADA, .tag.estado-ENTREGADO { background: var(--mint); border-color: #b9dcc6; }
+.tag.estado-EN_PROCESO, .tag.estado-PENDIENTE, .tag.estado-PENDIENTE_APROBACION { background: var(--butter); border-color: #ecd48a; }
+.tag.estado-BANNED, .tag.estado-RECHAZADA, .tag.estado-VENCIDO { background: var(--alert-bg); border-color: #f0b8b8; }
+.tag.estado-ADOPTADO, .tag.estado-COMPLETADA { background: var(--skybg); border-color: #a9d3ec; }
+
+/* ---------- Botones ---------- */
+.btn { display: inline-block; background: var(--teal); color: #fff; border: 0; padding: .6rem 1.15rem;
+  border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none;
+  transition: background .15s ease, transform .15s ease; }
+.btn:hover { background: var(--teal-dark); }
+.btn:active { transform: scale(.98); }
+.btn.sun { background: var(--sun); color: var(--ink); }
+.btn.sun:hover { background: #e5a823; }
+.btn.coral { background: var(--coral); }
+.btn.coral:hover { background: var(--coral-dark); }
+.btn.line { background: transparent; color: var(--teal); border: 2px solid var(--teal); padding: calc(.6rem - 2px) calc(1.15rem - 2px); }
+.btn.line:hover { background: var(--teal); color: #fff; }
+.btn.danger { background: var(--alert); }
+.btn.danger:hover { background: #a32222; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn.sm { padding: .3rem .8rem; font-size: .85rem; }
+.btn.sm.line { padding: calc(.3rem - 2px) calc(.8rem - 2px); }
+.btn.lg { padding: .8rem 1.5rem; font-size: 1.05rem; }
+
+/* ---------- Formularios ---------- */
+label { display: block; font-weight: 700; margin: .9rem 0 .25rem; }
+label.check { display: flex; align-items: center; gap: .5rem; font-weight: 400; margin: .4rem 0; }
+input[type=text], input[type=email], input[type=password], input[type=number], input[type=tel], input[type=date],
+select, textarea, input[type=file] {
+  width: 100%; padding: .6rem .75rem; border: 1px solid var(--field-border); border-radius: 10px; font: inherit; background: #fff; }
+input:focus, select:focus, textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15, 118, 110, .22); }
+textarea { min-height: 90px; resize: vertical; }
+input.invalid, select.invalid, textarea.invalid { border-color: var(--alert); border-width: 2px; }
+.field-error { color: var(--alert); font-size: .85rem; margin-top: .2rem; font-weight: 600; }
+.hint { color: var(--muted); font-size: .85rem; margin: .25rem 0 0; }
+.req { color: var(--alert); }
+fieldset { border: 2px solid var(--line); border-radius: var(--radius); padding: .25rem 1rem 1rem; margin: 1.25rem 0 0; background: #fcfefd; }
+legend { font-weight: 800; padding: 0 .5rem; color: var(--pine); font-size: 1.05rem; }
+fieldset > label:first-of-type { margin-top: .5rem; }
+.chip-btn { font: inherit; font-size: .85rem; cursor: pointer; background: var(--peach); color: var(--ink);
+  border: 1px solid #f5c9a6; border-radius: 999px; padding: .2rem .7rem; }
+.chip-btn:hover { background: #ffd9bd; }
+
+/* ---------- Tablas (postulaciones del adoptante y panel admin) ---------- */
+table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+th, td { padding: .65rem .8rem; text-align: left; border-bottom: 1px solid var(--line); font-size: .92rem; vertical-align: top; }
+th { background: var(--mint); font-weight: 800; color: var(--pine); }
+tbody tr:hover { background: #f7fbf9; }
+.table-wrap { overflow-x: auto; }
+
+/* ---------- Pie de página ---------- */
+.pie { text-align: center; padding: 1.5rem 1rem; color: var(--muted); font-size: .9rem;
+  background: linear-gradient(180deg, transparent, #e6f6ee); border-top: 1px solid var(--line); }
+.pie p { margin: 0; }
+
+/* ---------- Adaptación a pantallas pequeñas y accesibilidad (general) ---------- */
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+@media (max-width: 600px) {
+  h1 { font-size: 1.6rem; }
+  .container { padding: 1.25rem .9rem 3rem; }
+  .nav { gap: .25rem .5rem; padding: .6rem 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card, .btn { transition: none; }
+  .card:hover { transform: none; }
+}
+
+/*INICIO · LOGIN Y REGISTRO (templates/login.html y registro.html)*/
+
+/* ---------- Registro: cabecera ilustrada ---------- */
+.auth-cabecera { text-align: center; background: linear-gradient(135deg, var(--mint), var(--skybg) 60%, var(--lilac));
+  border-radius: var(--radius); padding: 1.25rem 1rem; margin-bottom: 1.25rem; border: 1px solid var(--line); }
+.auth-cabecera .emoji { font-size: 2.8rem; display: block; }
+.auth-cabecera h1 { margin-bottom: .25rem; }
+.auth-cabecera p { margin: 0; color: var(--muted); }
+
+/* ---------- Login: dos columnas (bienvenida + formulario) ---------- */
+.container.login-page { max-width: 900px; padding-top: 2.5rem; }
+.login-card { display: grid; grid-template-columns: 1fr 1.1fr; border-radius: 24px; overflow: hidden;
+  background: var(--paper); box-shadow: var(--shadow-hover); border: 1px solid var(--line); }
+.login-lado { position: relative; overflow: hidden; color: #fff; padding: 2.25rem 1.75rem;
+  background: linear-gradient(160deg, var(--pine), var(--teal)); display: flex; flex-direction: column; justify-content: center; }
+.login-lado::before { content: ""; position: absolute; right: -70px; top: -70px; width: 220px; height: 220px;
+  border-radius: 50%; background: rgba(244, 185, 66, .3); }
+.login-lado::after { content: ""; position: absolute; left: -50px; bottom: -60px; width: 190px; height: 190px;
+  border-radius: 50%; background: rgba(255, 255, 255, .12); }
+.login-lado > * { position: relative; z-index: 1; }
+.login-emojis { font-size: 3rem; letter-spacing: .3rem; }
+.login-lema { font-size: 1.6rem; font-weight: 800; line-height: 1.2; margin: .5rem 0 1.25rem; }
+.login-beneficios { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; }
+.login-beneficios li { background: rgba(255, 255, 255, .16); border-radius: 12px; padding: .6rem .8rem; font-size: .95rem; }
+.login-form { padding: 2.25rem 2rem; }
+.login-form h1 { font-size: 1.7rem; }
+
+/* Campo de contraseña con botón "Mostrar / Ocultar" */
+.campo-clave { position: relative; }
+.campo-clave input { padding-right: 6.5rem; }
+.ver-clave { position: absolute; right: .35rem; top: 50%; transform: translateY(-50%); background: none; border: 0;
+  color: var(--teal); font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; padding: .3rem .5rem; border-radius: 8px; }
+.ver-clave:hover { background: var(--mint); }
+
+/* Cuentas de prueba (borrar este bloque junto con el HTML antes de publicar) */
+details.demo { background: var(--butter); border-radius: 12px; padding: .6rem .9rem; margin-top: 1rem; }
+details.demo summary { cursor: pointer; font-weight: 700; color: var(--pine); }
+details.demo .hint { margin: .5rem 0; }
+
+@media (max-width: 720px) {
+  .login-card { grid-template-columns: 1fr; }
+  .login-lado { padding: 1.25rem; }
+  .login-beneficios { display: none; }
+  .login-emojis { font-size: 2.2rem; }
+  .login-lema { margin-bottom: 0; font-size: 1.3rem; }
+  .login-form { padding: 1.5rem 1.25rem; }
+}

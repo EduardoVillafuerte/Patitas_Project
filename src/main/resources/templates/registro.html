@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Crear cuenta')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container narrow">
+  <div class="auth-cabecera">
+    <span class="emoji" aria-hidden="true">🐱</span>
+    <h1>Crea tu cuenta</h1>
+    <p>Es gratis y toma menos de un minuto.</p>
+  </div>
+  <p class="muted">Los campos con <span class="req">*</span> son obligatorios.</p>
+
+  <!-- th:object enlaza el formulario con RegistroForm; th:field conecta cada input con su atributo.
+       th:errorclass agrega la clase "invalid" (borde rojo) solo si ese campo tiene error. -->
+  <form class="panel" th:action="@{/registro}" th:object="${registroForm}" method="post">
+    <label for="tipoCuenta">Quiero registrarme como <span class="req">*</span></label>
+    <select id="tipoCuenta" th:field="*{tipoCuenta}" th:errorclass="invalid" required>
+      <option value="ADOPTANTE">Adoptante (busco una mascota)</option>
+      <option value="REFUGIO">Refugio o rescatista</option>
+    </select>
+    <div class="field-error" th:if="${#fields.hasErrors('tipoCuenta')}" th:errors="*{tipoCuenta}"></div>
+
+    <label for="nombre">Nombre (o nombre del refugio) <span class="req">*</span></label>
+    <input id="nombre" type="text" th:field="*{nombre}" th:errorclass="invalid" required maxlength="80" autocomplete="name">
+    <div class="field-error" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+
+    <label for="email">Correo <span class="req">*</span></label>
+    <input id="email" type="email" th:field="*{email}" th:errorclass="invalid" required autocomplete="email"
+           placeholder="tucorreo@ejemplo.com">
+    <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+
+    <label for="password">Contraseña <span class="req">*</span></label>
+    <input id="password" type="password" th:field="*{password}" th:errorclass="invalid" required minlength="6"
+           autocomplete="new-password" aria-describedby="ayudaClave">
+    <p class="hint" id="ayudaClave">Mínimo 6 caracteres.</p>
+    <div class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+
+    <div id="bloqueLegal">
+      <label for="documentoLegal">RUC o registro de ONG <span class="req">*</span></label>
+      <input id="documentoLegal" type="text" th:field="*{documentoLegal}" th:errorclass="invalid" maxlength="30">
+      <div class="field-error" th:if="${#fields.hasErrors('documentoLegal')}" th:errors="*{documentoLegal}"></div>
+      <p class="hint">Un administrador verificará este dato antes de activar tu cuenta.</p>
+    </div>
+
+    <p><button class="btn lg" type="submit">Crear cuenta</button></p>
+    <p class="muted small">¿Ya tienes cuenta? <a th:href="@{/login}">Ingresar</a></p>
+  </form>
+</main>
+<script>
+  // Muestra el bloque del RUC solo si se elige "Refugio", y lo vuelve obligatorio en ese caso.
+  // (El servidor igual lo valida en AuthController: esto es solo comodidad para el usuario.)
+  const tipo = document.getElementById('tipoCuenta');
+  const bloque = document.getElementById('bloqueLegal');
+  const doc = document.getElementById('documentoLegal');
+  function alternar() {
+    const esRefugio = tipo.value === 'REFUGIO';
+    bloque.style.display = esRefugio ? 'block' : 'none';
+    doc.required = esRefugio;
+  }
+  tipo.addEventListener('change', alternar);
+  alternar();
+</script>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>
