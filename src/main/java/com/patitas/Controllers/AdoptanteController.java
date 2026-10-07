@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 
@@ -41,25 +42,45 @@ public class AdoptanteController {
     public String perfil(Authentication auth, Model model) {
         Usuario u = usuarios.actual(auth);
         PerfilForm f = new PerfilForm();
+        f.setNombre(u.getNombre());
+        f.setFechaNacimiento(u.getFechaNacimiento());
+        f.setCiudad(u.getCiudad());
+        f.setOcupacion(u.getOcupacion());
+        f.setTelefono(u.getTelefono());
+        f.setHobbies(u.getHobbies());
+        f.setSobreMi(u.getSobreMi());
+        f.setExperiencia(u.getExperiencia());
         f.setHorasFueraCasa(u.getHorasFueraCasa());
         f.setTipoVivienda(u.getTipoVivienda());
         f.setPresupuestoMensual(u.getPresupuestoMensual());
         f.setTieneNinos(Boolean.TRUE.equals(u.getTieneNinos()));
         model.addAttribute("form", f);
-        model.addAttribute("viviendas", EnumTipoVivienda.values());
+        cargarModeloPerfil(model, u);
         return "adoptante/perfil";
     }
 
     @PostMapping("/perfil")
     public String guardarPerfil(@Valid @ModelAttribute("form") PerfilForm form, BindingResult br,
                                 Authentication auth, Model model, RedirectAttributes ra) {
+        Usuario u = usuarios.actual(auth);
+        if (form.getFechaNacimiento() != null
+                && form.getFechaNacimiento().isAfter(LocalDate.now().minusYears(18))) {
+            br.rejectValue("fechaNacimiento", "menor", "Debes ser mayor de 18 años para adoptar");
+        }
         if (br.hasErrors()) {
-            model.addAttribute("viviendas", EnumTipoVivienda.values());
+            cargarModeloPerfil(model, u);
             return "adoptante/perfil";
         }
-        usuarios.guardarPerfil(usuarios.actual(auth), form);
+        usuarios.guardarPerfil(u, form);
         ra.addFlashAttribute("ok", "Perfil guardado. Ya puedes ver tu compatibilidad con cada mascota.");
         return "redirect:/adoptante/catalogo";
+    }
+
+    private void cargarModeloPerfil(Model model, Usuario u) {
+        model.addAttribute("usuario", u);
+        model.addAttribute("viviendas", EnumTipoVivienda.values());
+        model.addAttribute("experiencias", EnumExperiencia.values());
+        model.addAttribute("fechaMax", LocalDate.now().minusYears(18));
     }
 
     // Catálogo ordenado por compatibilidad
