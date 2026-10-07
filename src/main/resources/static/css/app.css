@@ -284,3 +284,59 @@ ul.motivos { margin: .25rem 0 0; padding-left: 1.1rem; }
   .perfil-cabecera { flex-direction: column; text-align: center; }
 }
 
+/*INICIO · ERROR */
+
+.error-page { border-top: 8px solid var(--sun); padding: 2rem 1.5rem;
+  background: linear-gradient(180deg, var(--butter), var(--paper) 45%); }
+.error-emoji { font-size: 3.5rem; line-height: 1; margin: 0; }
+.error-codigo { display: inline-block; margin: .75rem 0 .5rem; padding: .1rem .8rem; border-radius: 999px;
+  background: var(--lilac); border: 1px solid #d3c5f5; color: var(--grape); font-weight: 800; font-size: .85rem; }
+.error-acciones { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; margin: 1.25rem 0 0; }
+
+/*NICIO · REFUGIO  */
+
+/*Panel: bienvenida y acciones */
+.bienvenida { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+  background: linear-gradient(135deg, var(--peach), var(--butter)); border: 1px solid #f5d9b8;
+  border-radius: 20px; padding: 1.5rem; margin-bottom: 1.25rem; }
+.bienvenida h1 { margin-bottom: .2rem; }
+.bienvenida p { margin: 0; }
+.acciones { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+
+/* Panel: tarjetas de resumen (también las usa el admin) -*/
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.stat { background: var(--paper); border: 1px solid var(--line); border-top: 5px solid var(--teal); border-radius: var(--radius);
+  padding: .9rem 1rem; box-shadow: var(--shadow); color: var(--ink); text-decoration: none; display: block; }
+a.stat:hover { box-shadow: var(--shadow-hover); }
+.stat .icono { font-size: 1.5rem; display: block; }
+.stat strong { display: block; font-size: 2rem; font-weight: 800; line-height: 1.1; }
+.stat.mint { background: var(--mint); border-top-color: var(--teal); }
+.stat.mint strong { color: var(--teal); }
+.stat.peach { background: var(--peach); border-top-color: var(--coral); }
+.stat.peach strong { color: var(--coral-dark); }
+.stat.sky { background: var(--skybg); border-top-color: var(--sky); }
+.stat.sky strong { color: var(--sky); }
+.stat.lilac { background: var(--lilac); border-top-color: var(--grape); }
+.stat.lilac strong { color: var(--grape); }
+.stat.butter { background: var(--butter); border-top-color: var(--sun); }
+.stat.butter strong { color: var(--score-mid); }
+.stat.red { background: var(--alert-bg); border-top-color: var(--alert); }
+.stat.red strong { color: var(--alert); }
+
+/* Panel: atención, estados vacíos y seguimientos */
+.vacio { text-align: center; padding: 2rem 1rem; background: var(--paper); border: 2px dashed #b9cfc6; border-radius: var(--radius); }
+.vacio .emoji { font-size: 3rem; display: block; }
+.atencion { border-left: 8px solid var(--alert); }
+.todo-ok { border-left: 8px solid var(--score-high); }
+.lista-seg { display: flex; flex-direction: column; gap: .75rem; }
+.lista-seg .item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: .9rem 1rem; box-shadow: var(--shadow); }
+.lista-seg .item.vencido { border-left: 8px solid var(--alert); }
+.lista-seg .item.entregado { border-left: 8px solid var(--score-high); }
+.lista-seg .item.pendiente { border-left: 8px solid var(--sun); }
+
+/* Postulaciones: perfil desplegable del adoptante */
+.datos { list-style: none; margin: .5rem 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .35rem .75rem; }
+.datos li { font-size: .92rem; }
+details.detalles { background: var(--lilac); border-radius: 10px; padding: .6rem .9rem; margin: .75rem 0; }
+details.detalles summary { cursor: pointer; font-weight: 700; color: var(--pine); }
+details.detalles[open] summary { margin-bottom: .5rem; }

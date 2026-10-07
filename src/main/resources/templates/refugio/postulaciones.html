@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Postulaciones')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <h1>📬 Postulaciones recibidas</h1>
+  <p class="muted">Conoce a quienes quieren adoptar antes de decidir. Abre "Conocer al adoptante" para ver su perfil.</p>
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+  <div class="vacio" th:if="${#lists.isEmpty(postulaciones)}">
+    <span class="emoji" aria-hidden="true">📭</span>
+    <h3>Todavía no recibes postulaciones</h3>
+    <p class="muted">Cuando alguien postule a una de tus mascotas, aparecerá aquí.</p>
+  </div>
+
+  <div class="panel" th:each="p : ${postulaciones}">
+    <div class="row">
+      <div>
+        <h3 th:text="${p.adoptante.nombre} + ' quiere adoptar a ' + ${p.mascota.nombre}"></h3>
+        <p class="muted small"
+           th:text="${#temporals.format(p.fecha, 'dd/MM/yyyy HH:mm')} + ' · compatibilidad ' + ${p.scoreAlPostular} + '%'"></p>
+      </div>
+      <span th:replace="~{fragments/layout :: estado(${p.estado})}"></span>
+    </div>
+    <div class="meter" aria-hidden="true">
+      <span th:classappend="${p.scoreAlPostular ge 75 ? 'high' : (p.scoreAlPostular ge 50 ? 'mid' : 'low')}"
+            th:style="'width:' + ${p.scoreAlPostular} + '%'"></span>
+    </div>
+
+    <p th:if="${p.mensaje != null and !p.mensaje.isBlank()}" th:text="'💬 “' + ${p.mensaje} + '”'" style="margin-top:.75rem"></p>
+    <p class="small muted" th:if="${p.motivoRechazo != null}" th:text="'Motivo: ' + ${p.motivoRechazo}"></p>
+
+    <!-- PERFIL HUMANO DEL ADOPTANTE -->
+    <details class="detalles">
+      <summary>👤 Conocer al adoptante</summary>
+      <ul class="datos">
+        <li th:if="${p.adoptante.edad != null}" th:text="'🎂 ' + ${p.adoptante.edad} + ' años'"></li>
+        <li th:if="${p.adoptante.ciudad != null}" th:text="'📍 ' + ${p.adoptante.ciudad}"></li>
+        <li th:if="${p.adoptante.ocupacion != null}" th:text="'💼 ' + ${p.adoptante.ocupacion}"></li>
+        <li th:if="${p.adoptante.tipoVivienda != null}" th:text="'🏠 ' + ${p.adoptante.tipoVivienda.label}"></li>
+        <li th:if="${p.adoptante.horasFueraCasa != null}" th:text="'⏰ ' + ${p.adoptante.horasFueraCasa} + ' h al día fuera de casa'"></li>
+        <li th:if="${p.adoptante.experiencia != null}" th:text="'🐕 ' + ${p.adoptante.experiencia.label}"></li>
+        <li th:text="${p.adoptante.tieneNinos == true} ? '👶 Hay niños en casa' : '👶 Sin niños en casa'"></li>
+        <!-- El teléfono solo se muestra cuando ya aprobaste la postulación. -->
+        <li th:if="${p.adoptante.telefono != null and (p.estado.name() == 'APROBADA' or p.estado.name() == 'COMPLETADA')}"
+            th:text="'📞 ' + ${p.adoptante.telefono}"></li>
+      </ul>
+      <div class="chips" th:if="${!#lists.isEmpty(p.adoptante.hobbiesLista)}">
+        <span class="tag hobby" th:each="h : ${p.adoptante.hobbiesLista}" th:text="${h}"></span>
+      </div>
+      <p th:if="${p.adoptante.sobreMi != null}" th:text="'“' + ${p.adoptante.sobreMi} + '”'" style="margin-bottom:0"></p>
+      <p class="muted small" th:if="${p.adoptante.edad == null and p.adoptante.ciudad == null}" style="margin-bottom:0">
+        Esta persona aún no completó sus datos personales.
+      </p>
+    </details>
+
+    <div class="acciones" th:if="${p.estado.name() == 'PENDIENTE'}">
+      <form class="inline" th:action="@{/refugio/postulaciones/{id}/aprobar(id=${p.id})}" method="post">
+        <button class="btn sm" type="submit">✅ Aprobar</button>
+      </form>
+    </div>
+    <div class="acciones" th:if="${p.estado.name() == 'APROBADA'}">
+      <form class="inline" th:action="@{/refugio/postulaciones/{id}/completar(id=${p.id})}" method="post"
+            onsubmit="return confirm('¿Confirmas que la mascota ya fue entregada? Se creará el seguimiento a 30, 90 y 180 días.');">
+        <button class="btn sm sun" type="submit">🏡 Completar adopción</button>
+      </form>
+    </div>
+    <form th:if="${p.estado.name() == 'PENDIENTE' or p.estado.name() == 'APROBADA'}"
+          th:action="@{/refugio/postulaciones/{id}/rechazar(id=${p.id})}" method="post" style="margin-top:.75rem">
+      <div class="row">
+        <label class="muted small" style="margin:0;font-weight:400" th:for="'motivo' + ${p.id}">Motivo del rechazo (opcional)</label>
+      </div>
+      <div class="row" style="flex-wrap:nowrap">
+        <input type="text" name="motivo" maxlength="200" th:id="'motivo' + ${p.id}" placeholder="Ej: la mascota necesita un hogar con patio">
+        <button class="btn sm danger" type="submit">Rechazar</button>
+      </div>
+    </form>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

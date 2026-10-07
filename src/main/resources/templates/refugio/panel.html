@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mi refugio')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+
+  <!-- BIENVENIDA + acciones principales -->
+  <section class="bienvenida">
+    <div>
+      <h1>¡Hola, <span th:text="${usuario.nombre}">Refugio</span>! <span aria-hidden="true">👋</span></h1>
+      <p class="muted">Aquí ves de un vistazo cómo van tus mascotas y qué necesita tu atención.</p>
+    </div>
+    <div class="acciones" th:if="${usuario.activo}">
+      <a class="btn sun lg" th:href="@{/refugio/mascotas/nueva}">➕ Registrar mascota</a>
+      <a class="btn line lg" th:href="@{/refugio/postulaciones}">📬 Ver postulaciones</a>
+    </div>
+  </section>
+
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+  <div class="alert warn" th:if="${!usuario.activo}">
+    <strong>Tu cuenta está pendiente de aprobación.</strong>
+    Un administrador está verificando tu RUC o registro de ONG. En cuanto lo apruebe podrás publicar mascotas. ¡Gracias por tu paciencia!
+  </div>
+
+  <th:block th:if="${usuario.activo}">
+
+    <!-- RESUMEN -->
+    <div class="stats">
+      <div class="stat mint"><span class="icono" aria-hidden="true">🐕</span><strong th:text="${disponibles}">0</strong>Disponibles</div>
+      <div class="stat butter"><span class="icono" aria-hidden="true">⏳</span><strong th:text="${enProceso}">0</strong>En proceso</div>
+      <div class="stat sky"><span class="icono" aria-hidden="true">🏡</span><strong th:text="${adoptadas}">0</strong>Adoptadas</div>
+      <a class="stat peach" th:href="@{/refugio/postulaciones}">
+        <span class="icono" aria-hidden="true">📬</span><strong th:text="${pendientes}">0</strong>Postulaciones por revisar
+      </a>
+    </div>
+
+    <!-- QUÉ NECESITA TU ATENCIÓN -->
+    <section class="panel atencion" th:if="${!#lists.isEmpty(alertas)}">
+      <h3>🚨 Necesitan tu atención</h3>
+      <p class="muted small">Estos adoptantes no subieron la evidencia a tiempo. Contáctalos para saber cómo está la mascota.</p>
+      <div class="alert red" th:each="a : ${alertas}"
+           th:text="${a.postulacion.adoptante.nombre} + ' no entregó la evidencia del día ' + ${a.diasPostAdopcion} + ' de ' + ${a.postulacion.mascota.nombre} + ' (límite ' + ${#temporals.format(a.fechaLimite, 'dd/MM/yyyy')} + ')'"></div>
+    </section>
+    <section class="panel atencion" th:if="${#lists.isEmpty(alertas) and pendientes > 0}">
+      <div class="row">
+        <div>
+          <h3>📬 Tienes postulaciones esperando respuesta</h3>
+          <p class="muted" style="margin:0" th:text="'Hay ' + ${pendientes} + ' persona(s) esperando saber si pueden adoptar.'"></p>
+        </div>
+        <a class="btn" th:href="@{/refugio/postulaciones}">Revisarlas</a>
+      </div>
+    </section>
+    <section class="panel todo-ok" th:if="${#lists.isEmpty(alertas) and pendientes == 0 and !#lists.isEmpty(mascotas)}">
+      <h3 style="margin:0">✅ Todo al día</h3>
+      <p class="muted" style="margin:0">No tienes postulaciones pendientes ni seguimientos vencidos.</p>
+    </section>
+
+    <!-- MIS MASCOTAS -->
+    <h2>🐾 Mis mascotas</h2>
+    <div class="vacio" th:if="${#lists.isEmpty(mascotas)}">
+      <span class="emoji" aria-hidden="true">🐶🐱</span>
+      <h3>Aún no registras mascotas</h3>
+      <p class="muted">Publica la primera para que los adoptantes puedan conocerla.</p>
+      <a class="btn sun lg" th:href="@{/refugio/mascotas/nueva}">➕ Registrar mi primera mascota</a>
+    </div>
+    <div class="grid" th:if="${!#lists.isEmpty(mascotas)}">
+      <article class="card" th:each="m : ${mascotas}">
+        <div th:replace="~{fragments/layout :: foto(${m})}"></div>
+        <div class="body">
+          <div class="row">
+            <h3 style="margin:0" th:text="${m.nombre}">Nombre</h3>
+            <span th:replace="~{fragments/layout :: estado(${m.estado})}"></span>
+          </div>
+          <p class="muted small" th:text="${m.especie} + ' · ' + ${m.edadAnios} + ' años'"></p>
+          <div class="chips">
+            <span class="tag" th:text="${m.vacunado} ? '💉 Vacunado' : '⚠️ Sin vacunas'"></span>
+            <span class="tag" th:text="${m.esterilizado} ? '✂️ Esterilizado' : 'Sin esterilizar'"></span>
+          </div>
+          <div class="acciones" style="margin-top:auto;padding-top:.5rem">
+            <a class="btn sm line" th:href="@{/refugio/mascotas/{id}/editar(id=${m.id})}">✏️ Editar</a>
+            <form class="inline" th:action="@{/refugio/mascotas/{id}/eliminar(id=${m.id})}" method="post"
+                  onsubmit="return confirm('¿Quitar esta mascota del catálogo?');">
+              <button class="btn sm danger" type="submit">🗑️ Eliminar</button>
+            </form>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- SEGUIMIENTOS -->
+    <h2>📸 Seguimiento post-adopción</h2>
+    <p class="muted" th:if="${#lists.isEmpty(seguimientos)}">Cuando completes una adopción, aquí verás las evidencias que suban los adoptantes a los 30, 90 y 180 días.</p>
+    <div class="lista-seg" th:if="${!#lists.isEmpty(seguimientos)}">
+      <div class="item" th:each="s : ${seguimientos}"
+           th:classappend="${s.estado.name() == 'VENCIDO'} ? 'vencido' : (${s.estado.name() == 'ENTREGADO'} ? 'entregado' : 'pendiente')">
+        <div class="row">
+          <strong th:text="${s.postulacion.mascota.nombre} + ' · día ' + ${s.diasPostAdopcion}"></strong>
+          <span th:replace="~{fragments/layout :: estado(${s.estado})}"></span>
+        </div>
+        <p class="small muted" style="margin:.2rem 0"
+           th:text="'Adoptante: ' + ${s.postulacion.adoptante.nombre} + ' · fecha límite ' + ${#temporals.format(s.fechaLimite, 'dd/MM/yyyy')}"></p>
+        <p class="small" style="margin:.2rem 0" th:if="${s.comentario != null and !s.comentario.isBlank()}" th:text="'💬 ' + ${s.comentario}"></p>
+        <a class="btn sm line" th:if="${s.tieneEvidencia()}" th:href="@{/refugio/seguimientos/{id}/evidencia(id=${s.id})}" target="_blank" rel="noopener">📷 Ver foto</a>
+      </div>
+    </div>
+  </th:block>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

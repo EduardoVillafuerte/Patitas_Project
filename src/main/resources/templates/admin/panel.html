@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Administración')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <h1>🛡️ Panel de administración</h1>
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+  <div class="stats">
+    <div class="stat mint"><span class="icono" aria-hidden="true">🐾</span><strong th:text="${totalMascotas}">0</strong>Mascotas en catálogo</div>
+    <div class="stat sky"><span class="icono" aria-hidden="true">🐕</span><strong th:text="${disponibles}">0</strong>Disponibles</div>
+    <div class="stat butter"><span class="icono" aria-hidden="true">🏡</span><strong th:text="${adoptadas}">0</strong>Adoptadas</div>
+    <div class="stat peach"><span class="icono" aria-hidden="true">🙋</span><strong th:text="${adoptantes}">0</strong>Adoptantes</div>
+    <div class="stat lilac"><span class="icono" aria-hidden="true">🏠</span><strong th:text="${refugiosActivos}">0</strong>Refugios activos</div>
+    <div class="stat mint"><span class="icono" aria-hidden="true">📬</span><strong th:text="${postulacionesPendientes}">0</strong>Postulaciones pendientes</div>
+    <div class="stat red"><span class="icono" aria-hidden="true">🚨</span><strong th:text="${seguimientosVencidos}">0</strong>Seguimientos vencidos</div>
+  </div>
+
+  <h2>🏠 Refugios por aprobar</h2>
+  <p class="muted" th:if="${#lists.isEmpty(refugiosPendientes)}">No hay refugios esperando aprobación.</p>
+  <div class="table-wrap" th:if="${!#lists.isEmpty(refugiosPendientes)}">
+    <table>
+      <thead><tr><th>Refugio</th><th>Correo</th><th>RUC / ONG</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="r : ${refugiosPendientes}">
+          <td th:text="${r.nombre}"></td>
+          <td th:text="${r.email}"></td>
+          <td th:text="${r.documentoLegal}"></td>
+          <td>
+            <form class="inline" th:action="@{/admin/refugios/{id}/aprobar(id=${r.id})}" method="post">
+              <button class="btn sm" type="submit">Aprobar</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>👥 Usuarios</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="u : ${usuarios}">
+          <td th:text="${u.nombre}"></td>
+          <td th:text="${u.email}"></td>
+          <td th:text="${u.rol}"></td>
+          <td><span th:replace="~{fragments/layout :: estado(${u.estado})}"></span></td>
+          <td>
+            <form class="inline" th:if="${u.estado.name() != 'BANNED'}"
+                  th:action="@{/admin/usuarios/{id}/ban(id=${u.id})}" method="post"
+                  onsubmit="return confirm('¿Agregar a la lista negra?');">
+              <button class="btn sm danger" type="submit">Banear</button>
+            </form>
+            <form class="inline" th:if="${u.estado.name() == 'BANNED'}"
+                  th:action="@{/admin/usuarios/{id}/desbanear(id=${u.id})}" method="post">
+              <button class="btn sm line" type="submit">Quitar ban</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>🐾 Mascotas</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Nombre</th><th>Refugio</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="m : ${mascotas}">
+          <td th:text="${m.nombre}"></td>
+          <td th:text="${m.refugio.nombre}"></td>
+          <td><span th:replace="~{fragments/layout :: estado(${m.estado})}"></span></td>
+          <td>
+            <form class="inline" th:action="@{/admin/mascotas/{id}/eliminar(id=${m.id})}" method="post"
+                  onsubmit="return confirm('¿Quitar del catálogo?');">
+              <button class="btn sm danger" type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

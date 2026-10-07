@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Algo salió mal')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<!--
+  Spring Boot muestra automáticamente templates/error.html para cualquier error (403, 404, 500...).
+  Dentro de esta página existe la variable ${status} con el código HTTP.
+-->
+<main class="container narrow">
+  <div class="panel centrado">
+    <p style="font-size:3rem;margin:0" aria-hidden="true">🐾</p>
+
+    <th:block th:if="${status == 403}">
+      <h1>No tienes permiso para ver esto</h1>
+      <p class="muted">Esta sección es de otro tipo de cuenta. Si crees que es un error, cierra sesión e ingresa con la cuenta correcta.</p>
+    </th:block>
+    <th:block th:if="${status == 404}">
+      <h1>No encontramos esa página</h1>
+      <p class="muted">Puede que el enlace esté mal escrito o que la mascota ya no exista.</p>
+    </th:block>
+    <th:block th:if="${status == 413}">
+      <h1>El archivo es demasiado grande</h1>
+      <p class="muted">Las fotos pueden pesar como máximo 3 MB. Elige una imagen más liviana e inténtalo de nuevo.</p>
+    </th:block>
+    <th:block th:if="${status != 403 and status != 404 and status != 413}">
+      <h1>Algo salió mal</h1>
+      <p class="muted">Tuvimos un problema inesperado. Intenta de nuevo en unos minutos.</p>
+    </th:block>
+
+    <p><a class="btn" th:href="@{/}">Volver al inicio</a></p>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>
