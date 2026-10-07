@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /*Lógica de usuarios: login, registro, perfil y acciones del administrador.
- *Implementa UserDetailsService: es la interfaz que Spring Security usa en el login para
+ *Implementa UserDetailsService: es la interfaz que Spring Security usa en el login
  */
 @Service
 @RequiredArgsConstructor
