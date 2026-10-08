@@ -9,6 +9,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.patitas.Models.Enums.*;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -51,8 +54,39 @@ public class Usuario implements UserDetails {
     private Boolean tieneNinos;
     private boolean perfilCompleto;
 
+    // Datos personales (solo adoptantes)
+    private LocalDate fechaNacimiento;
+    private String ciudad;
+    private String ocupacion;
+    private String telefono;
+
+    @Column(length = 200)
+    private String hobbies;
+
+    @Column(length = 500)
+    private String sobreMi;
+
+    @Enumerated(EnumType.STRING)
+    private EnumExperiencia experiencia;
+
     public boolean isActivo() { return estado == EnumEstadoCuenta.ACTIVO; }
     public boolean isBaneado() { return estado == EnumEstadoCuenta.BANNED; }
+
+    /** Primera letra del nombre en mayúscula, para el avatar. */
+    public String getInicial() {
+        return (nombre == null || nombre.isBlank()) ? "?" : nombre.trim().substring(0, 1).toUpperCase();
+    }
+
+    /** Edad calculada; null si no hay fecha de nacimiento. */
+    public Integer getEdad() {
+        return fechaNacimiento == null ? null : Period.between(fechaNacimiento, LocalDate.now()).getYears();
+    }
+
+    /** Hobbies separados por coma, como lista limpia. */
+    public List<String> getHobbiesLista() {
+        if (hobbies == null || hobbies.isBlank()) return List.of();
+        return Arrays.stream(hobbies.split(",")).map(String::trim).filter(h -> !h.isEmpty()).toList();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -61,4 +95,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public String getUsername() { return email; }
+
+    
 }

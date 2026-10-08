@@ -74,12 +74,24 @@ public class UsuarioService implements UserDetailsService {
     /** Guarda el perfil de estilo de vida; con él se calcula el % de compatibilidad. */
     @Transactional
     public void guardarPerfil(Usuario u, PerfilForm f) {
+        u.setNombre(f.getNombre().trim());
+        u.setFechaNacimiento(f.getFechaNacimiento());
+        u.setCiudad(f.getCiudad().trim());
+        u.setOcupacion(vacioANull(f.getOcupacion()));
+        u.setTelefono(vacioANull(f.getTelefono()));
+        u.setHobbies(vacioANull(f.getHobbies()));
+        u.setSobreMi(vacioANull(f.getSobreMi()));
+        u.setExperiencia(f.getExperiencia());
         u.setHorasFueraCasa(f.getHorasFueraCasa());
         u.setTipoVivienda(f.getTipoVivienda());
         u.setPresupuestoMensual(f.getPresupuestoMensual());
         u.setTieneNinos(f.isTieneNinos());
         u.setPerfilCompleto(true);
         repo.save(u);
+    }
+
+    private static String vacioANull(String s) {
+        return (s == null || s.isBlank()) ? null : s.trim();
     }
 
     // ---- Acciones de administración ----
