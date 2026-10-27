@@ -53,7 +53,7 @@ public class Mascota {
     private String fichaMedica;
 
     // Imagen 
-    @Lob
+    // @Lob
     private byte[] imagen;
     private String imagenTipo;
 

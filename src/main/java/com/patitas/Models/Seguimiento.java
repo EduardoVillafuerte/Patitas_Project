@@ -35,7 +35,7 @@ public class Seguimiento {
     @Column(length = 1000)
     private String comentario;
 
-    @Lob
+    // @Lob
     private byte[] evidencia;
     private String evidenciaTipo;
 
