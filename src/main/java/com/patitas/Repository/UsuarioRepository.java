@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmail(String email);
     boolean existsByEmail(String email);
+    boolean existsByCedula(String cedula);
+    boolean existsByDocumentoLegal(String documentoLegal);
     List<Usuario> findByRolAndEstado(EnumRol rol, EnumEstadoCuenta estado);
     List<Usuario> findByRolNotOrderByIdDesc(EnumRol rol);
     long countByRol(EnumRol rol);

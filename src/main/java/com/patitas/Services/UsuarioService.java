@@ -3,6 +3,9 @@ package com.patitas.Services;
 import com.patitas.dto.PerfilForm;
 import com.patitas.dto.RegistroForm;
 import com.patitas.exception.BusinessException;
+import com.patitas.validation.IdentificacionEc;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.patitas.Models.Enums.EnumRol;
 import com.patitas.Models.Enums.EnumEstadoCuenta;
@@ -24,11 +27,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class UsuarioService implements UserDetailsService {
 
     private final UsuarioRepository repo;
+    private final PasswordEncoder encoder;
 
     /**
      * LOGIN: Spring llama a este método con lo que el usuario escribió en el campo "username"
      * (en nuestro caso, el correo). Devolvemos el Usuario; luego Spring compara por su cuenta
-     * la contraseña escrita con usuario.getPassword() (texto plano, ver SecurityConfig).
+     * la contraseña escrita con usuario.getPassword() (guardada con BCrypt, ver SecurityConfig).
      * Si lanzamos UsernameNotFoundException, Spring responde "login fallido" (/login?error).
      */
     @Override
@@ -52,20 +56,55 @@ public class UsuarioService implements UserDetailsService {
     }
 
 
+    public boolean cedulaExiste(String cedula) {
+        return repo.existsByCedula(cedula.trim());
+    }
+
+    public boolean documentoExiste(String documento) {
+        return repo.existsByDocumentoLegal(documento.trim());
+    }
+
+    /**
+     * REGISTRO. Esta es la última barrera antes de la base de datos: aunque el navegador o el
+     * controlador ya hayan validado, aquí se vuelve a validar la identificación (dato sensible)
+     * y se guarda la contraseña cifrada con BCrypt.
+     */
     @Transactional //si algo falla a la mitad, se deshace todo
     public Usuario registrar(RegistroForm f) {
         if (f.getTipoCuenta() == EnumRol.ADMIN) {
             throw new BusinessException("Tipo de cuenta no permitido");
         }
+        String email = f.getEmail().trim().toLowerCase();
+        if (repo.existsByEmail(email)) {
+            throw new BusinessException("Ya existe una cuenta con ese correo");
+        }
+
         Usuario u = new Usuario();
         u.setNombre(f.getNombre().trim());
-        u.setEmail(f.getEmail().trim().toLowerCase());
-        u.setPassword(f.getPassword()); 
+        u.setEmail(email);
+        u.setPassword(encoder.encode(f.getPassword()));
         u.setRol(f.getTipoCuenta());
+
         if (f.getTipoCuenta() == EnumRol.REFUGIO) {
-            u.setDocumentoLegal(f.getDocumentoLegal().trim());
+            String ruc = f.getDocumentoLegal() == null ? "" : f.getDocumentoLegal().trim();
+            if (!IdentificacionEc.esRucValido(ruc)) {
+                throw new BusinessException("El RUC no es válido");
+            }
+            if (repo.existsByDocumentoLegal(ruc)) {
+                throw new BusinessException("Ya existe un refugio registrado con ese RUC");
+            }
+            u.setDocumentoLegal(ruc);
             u.setEstado(EnumEstadoCuenta.PENDIENTE_APROBACION);
         } else {
+            String cedula = f.getCedula() == null ? "" : f.getCedula().trim();
+            if (!IdentificacionEc.esCedulaValida(cedula)) {
+                throw new BusinessException("La cédula no es válida");
+            }
+            // Si esa cédula pertenece a una cuenta baneada, también cae aquí: no puede volver con otro correo.
+            if (repo.existsByCedula(cedula)) {
+                throw new BusinessException("Ya existe una cuenta registrada con esa cédula");
+            }
+            u.setCedula(cedula);
             u.setEstado(EnumEstadoCuenta.ACTIVO);
         }
         return repo.save(u);
@@ -102,6 +141,12 @@ public class UsuarioService implements UserDetailsService {
                 .orElseThrow(() -> new BusinessException("Usuario no encontrado"));
         if (u.getRol() == EnumRol.ADMIN) {
             throw new BusinessException("No se puede modificar a un administrador");
+        }
+        // Dato sensible: el RUC se revalida en el servidor justo antes de aprobar al refugio.
+        if (nuevo == EnumEstadoCuenta.ACTIVO && u.getRol() == EnumRol.REFUGIO
+                && u.getEstado() == EnumEstadoCuenta.PENDIENTE_APROBACION
+                && !IdentificacionEc.esRucValido(u.getDocumentoLegal())) {
+            throw new BusinessException("No se puede aprobar: el RUC del refugio no es válido");
         }
         u.setEstado(nuevo);
         repo.save(u);

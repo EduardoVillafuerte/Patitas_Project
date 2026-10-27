@@ -40,11 +40,12 @@
   <h2>👥 Usuarios</h2>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Nombre</th><th>Correo</th><th>Identificación</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
       <tbody>
         <tr th:each="u : ${usuarios}">
           <td th:text="${u.nombre}"></td>
           <td th:text="${u.email}"></td>
+          <td th:text="${u.cedula != null ? u.cedula : (u.documentoLegal != null ? u.documentoLegal : '—')}"></td>
           <td th:text="${u.rol}"></td>
           <td><span th:replace="~{fragments/layout :: estado(${u.estado})}"></span></td>
           <td>

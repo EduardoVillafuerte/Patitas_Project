@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -18,9 +18,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
  *   2) ¿A dónde va cada usuario después de entrar?  -> successHandler()
  *   3) ¿Qué URLs puede ver cada quien?              -> filterChain()
  *
- * IMPORTANTE (etapa de aprendizaje): las contraseñas se guardan y comparan en
- * TEXTO PLANO. Es solo para entender el flujo de login. En un sistema real
- * esto NUNCA se hace: se usaría BCrypt. Dejarlo para una etapa posterior.
+ * Las contraseñas se guardan cifradas con BCrypt: en la base de datos nunca queda la clave real.
  */
 @Configuration       // Le dice a Spring: "esta clase define beans (objetos) de configuración".
 @EnableWebSecurity   // Activa Spring Security para toda la aplicación web.
@@ -28,20 +26,13 @@ public class SecurityConfig {
 
     /**
      * 1) COMPARACIÓN DE CONTRASEÑAS
-     * Spring Security necesita un PasswordEncoder para comparar lo que escribe el
-     * usuario con lo guardado en la BD. NoOpPasswordEncoder significa "No Operation":
-     * no transforma nada, compara texto contra texto.
-     *
-     * Si NO definiéramos este bean, Spring usaría por defecto un encoder que exige
-     * que la clave en la BD empiece con "{noop}" o "{bcrypt}", y el login fallaría.
-     *
-     * @SuppressWarnings: la clase está marcada como "deprecated" (obsoleta) justamente
-     * porque no es segura; lo sabemos y lo usamos a propósito, por eso silenciamos el aviso.
+     * BCrypt cifra la clave con una sal aleatoria: dos usuarios con la misma clave tienen
+     * textos distintos en la BD y no se puede "descifrar". Spring Security usa este mismo bean
+     * para comparar lo que escribe el usuario en el login con el hash guardado.
      */
     @Bean
-    @SuppressWarnings("deprecation")
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
     /**

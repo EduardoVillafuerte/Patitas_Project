@@ -41,7 +41,12 @@ public class Usuario implements UserDetails {
     @Column(nullable = false)
     private EnumEstadoCuenta estado;
 
-    /** RUC o registro de ONG (solo refugios). */
+    /** Cédula (solo adoptantes). Única: una persona baneada no puede volver a registrarse con otro correo. */
+    @Column(unique = true, length = 10)
+    private String cedula;
+
+    /** RUC (solo refugios). Único y validado en el servidor. */
+    @Column(unique = true, length = 13)
     private String documentoLegal;
 
     // Perfil de estilo de vida (solo adoptantes)

@@ -3,6 +3,10 @@ package com.patitas.Controllers;
 import com.patitas.dto.RegistroForm;
 import com.patitas.Models.Enums.EnumRol;
 import com.patitas.Services.UsuarioService;
+import com.patitas.exception.BusinessException;
+import com.patitas.validation.IdentificacionEc;
+
+import org.springframework.dao.DataIntegrityViolationException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -65,18 +69,40 @@ public class AuthController {
         if (form.getEmail() != null && usuarios.emailExiste(form.getEmail())) {
             br.rejectValue("email", "duplicado", "Ya existe una cuenta con ese correo");
         }
-        if (form.getTipoCuenta() == EnumRol.REFUGIO
-                && (form.getDocumentoLegal() == null || form.getDocumentoLegal().isBlank())) {
-            br.rejectValue("documentoLegal", "requerido", "Los refugios deben indicar su RUC o registro de ONG");
+        if (form.getTipoCuenta() == EnumRol.REFUGIO) {
+            String ruc = form.getDocumentoLegal() == null ? "" : form.getDocumentoLegal().trim();
+            if (ruc.isEmpty()) {
+                br.rejectValue("documentoLegal", "requerido", "Los refugios deben indicar su RUC");
+            } else if (!br.hasFieldErrors("documentoLegal")) {
+                if (!IdentificacionEc.esRucValido(ruc)) {
+                    br.rejectValue("documentoLegal", "invalido", "El RUC no es válido, revisa los 13 dígitos");
+                } else if (usuarios.documentoExiste(ruc)) {
+                    br.rejectValue("documentoLegal", "duplicado", "Ya existe un refugio registrado con ese RUC");
+                }
+            }
+        } else {
+            String cedula = form.getCedula() == null ? "" : form.getCedula().trim();
+            if (cedula.isEmpty()) {
+                br.rejectValue("cedula", "requerido", "Ingresa tu cédula");
+            } else if (!br.hasFieldErrors("cedula") && usuarios.cedulaExiste(cedula)) {
+                br.rejectValue("cedula", "duplicado", "Ya existe una cuenta registrada con esa cédula");
+            }
         }
-
         // Si hubo errores, NO redirigimos: volvemos a mostrar el mismo formulario
         // (con los datos que escribió y los mensajes de error junto a cada campo).
         if (br.hasErrors()) {
             return "registro";
         }
 
-        usuarios.registrar(form);
+        try {
+            usuarios.registrar(form);
+        } catch (BusinessException | DataIntegrityViolationException e) {
+            // Última barrera: validación del servicio o restricción única de la BD (p. ej. dos registros simultáneos).
+            String msg = (e instanceof BusinessException) ? e.getMessage()
+                    : "Ya existe una cuenta con esos datos (correo, cédula o RUC)";
+            br.reject("registro", msg);
+            return "registro";
+        }
         if (form.getTipoCuenta() == EnumRol.REFUGIO) {
             ra.addFlashAttribute("ok", "Cuenta creada. Un administrador revisará tu RUC/ONG antes de que puedas publicar mascotas.");
         } else {
