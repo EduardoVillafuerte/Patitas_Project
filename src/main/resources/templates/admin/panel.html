@@ -4,86 +4,225 @@
 <body>
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 <main class="container">
-  <h1>🛡️ Panel de administración</h1>
+
+  <!-- CABECERA + MENÚ DESPLEGABLE: elige qué vista ver. El JavaScript del final muestra una sola vista a la vez. -->
+  <header class="admin-cabecera">
+    <div>
+      <h1>Panel de administración</h1>
+      <p class="muted">Elige qué quieres revisar con el menú.</p>
+    </div>
+    <div class="vista-selector">
+      <button type="button" class="vista-boton" id="vistaBoton" aria-haspopup="true" aria-expanded="false" aria-controls="vistaMenu">
+        <span id="vistaEtiqueta">Dashboard</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <ul class="vista-menu" id="vistaMenu" hidden>
+        <li><button type="button" data-vista="dashboard">Dashboard</button></li>
+        <li><button type="button" data-vista="usuarios">Usuarios <small th:text="${#lists.size(usuarios)}">0</small></button></li>
+        <li><button type="button" data-vista="mascotas">Mascotas <small th:text="${#lists.size(mascotas)}">0</small></button></li>
+      </ul>
+    </div>
+  </header>
+
   <div th:replace="~{fragments/layout :: mensajes}"></div>
 
-  <div class="stats">
-    <div class="stat mint"><span class="icono" aria-hidden="true">🐾</span><strong th:text="${totalMascotas}">0</strong>Mascotas en catálogo</div>
-    <div class="stat sky"><span class="icono" aria-hidden="true">🐕</span><strong th:text="${disponibles}">0</strong>Disponibles</div>
-    <div class="stat butter"><span class="icono" aria-hidden="true">🏡</span><strong th:text="${adoptadas}">0</strong>Adoptadas</div>
-    <div class="stat peach"><span class="icono" aria-hidden="true">🙋</span><strong th:text="${adoptantes}">0</strong>Adoptantes</div>
-    <div class="stat lilac"><span class="icono" aria-hidden="true">🏠</span><strong th:text="${refugiosActivos}">0</strong>Refugios activos</div>
-    <div class="stat mint"><span class="icono" aria-hidden="true">📬</span><strong th:text="${postulacionesPendientes}">0</strong>Postulaciones pendientes</div>
-    <div class="stat red"><span class="icono" aria-hidden="true">🚨</span><strong th:text="${seguimientosVencidos}">0</strong>Seguimientos vencidos</div>
-  </div>
+  <!-- ================= VISTA 1: DASHBOARD ================= -->
+  <section class="vista activa" id="vista-dashboard" data-vista-id="dashboard" aria-labelledby="tit-dashboard">
+    <div class="vista-cabecera"><h2 id="tit-dashboard">Dashboard</h2></div>
 
-  <h2>🏠 Refugios por aprobar</h2>
-  <p class="muted" th:if="${#lists.isEmpty(refugiosPendientes)}">No hay refugios esperando aprobación.</p>
-  <div class="table-wrap" th:if="${!#lists.isEmpty(refugiosPendientes)}">
-    <table>
-      <thead><tr><th>Refugio</th><th>Correo</th><th>RUC / ONG</th><th></th></tr></thead>
-      <tbody>
-        <tr th:each="r : ${refugiosPendientes}">
-          <td th:text="${r.nombre}"></td>
-          <td th:text="${r.email}"></td>
-          <td th:text="${r.documentoLegal}"></td>
-          <td>
-            <form class="inline" th:action="@{/admin/refugios/{id}/aprobar(id=${r.id})}" method="post">
-              <button class="btn sm" type="submit">Aprobar</button>
-            </form>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <!-- Resumen con color: cada tarjeta tiene su variante (aqua, mint, sky, peach, lilac, butter, red). -->
+    <div class="stats coloridos">
+      <div class="stat aqua"><strong th:text="${totalMascotas}">0</strong>Mascotas en catálogo</div>
+      <div class="stat mint"><strong th:text="${disponibles}">0</strong>Disponibles</div>
+      <div class="stat sky"><strong th:text="${adoptadas}">0</strong>Adoptadas</div>
+      <div class="stat peach"><strong th:text="${adoptantes}">0</strong>Adoptantes</div>
+      <div class="stat lilac"><strong th:text="${refugiosActivos}">0</strong>Refugios activos</div>
+      <div class="stat butter"><strong th:text="${postulacionesPendientes}">0</strong>Postulaciones pendientes</div>
+      <div class="stat red"><strong th:text="${seguimientosVencidos}">0</strong>Seguimientos vencidos</div>
+    </div>
 
-  <h2>👥 Usuarios</h2>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Nombre</th><th>Correo</th><th>Identificación</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
-      <tbody>
-        <tr th:each="u : ${usuarios}">
-          <td th:text="${u.nombre}"></td>
-          <td th:text="${u.email}"></td>
-          <td th:text="${u.cedula != null ? u.cedula : (u.documentoLegal != null ? u.documentoLegal : '—')}"></td>
-          <td th:text="${u.rol}"></td>
-          <td><span th:replace="~{fragments/layout :: estado(${u.estado})}"></span></td>
-          <td>
-            <form class="inline" th:if="${u.estado.name() != 'BANNED'}"
-                  th:action="@{/admin/usuarios/{id}/ban(id=${u.id})}" method="post"
-                  onsubmit="return confirm('¿Agregar a la lista negra?');">
-              <button class="btn sm danger" type="submit">Banear</button>
-            </form>
-            <form class="inline" th:if="${u.estado.name() == 'BANNED'}"
-                  th:action="@{/admin/usuarios/{id}/desbanear(id=${u.id})}" method="post">
-              <button class="btn sm line" type="submit">Quitar ban</button>
-            </form>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <!-- Estado del catálogo: barra proporcional. "enProc" nunca es negativo (por si disponibles + adoptadas superan el total). -->
+    <div class="panel" th:with="resto=${totalMascotas - disponibles - adoptadas}, enProc=${resto > 0 ? resto : 0}, suma=${disponibles + adoptadas + enProc}">
+      <h2>Estado del catálogo</h2>
+      <p class="muted" th:if="${suma == 0}">Aún no hay mascotas registradas.</p>
+      <th:block th:if="${suma > 0}">
+        <div class="barra-estado" role="img" aria-label="Proporción de mascotas por estado">
+          <span class="seg disp" th:style="'width:' + ${disponibles * 100.0 / suma} + '%'"></span>
+          <span class="seg proc" th:style="'width:' + ${enProc * 100.0 / suma} + '%'"></span>
+          <span class="seg adop" th:style="'width:' + ${adoptadas * 100.0 / suma} + '%'"></span>
+        </div>
+        <ul class="leyenda">
+          <li><span class="pt disp"></span>Disponibles <strong th:text="${disponibles}">0</strong></li>
+          <li><span class="pt proc"></span>En proceso <strong th:text="${enProc}">0</strong></li>
+          <li><span class="pt adop"></span>Adoptadas <strong th:text="${adoptadas}">0</strong></li>
+        </ul>
+      </th:block>
+    </div>
 
-  <h2>🐾 Mascotas</h2>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Nombre</th><th>Refugio</th><th>Estado</th><th></th></tr></thead>
-      <tbody>
-        <tr th:each="m : ${mascotas}">
-          <td th:text="${m.nombre}"></td>
-          <td th:text="${m.refugio.nombre}"></td>
-          <td><span th:replace="~{fragments/layout :: estado(${m.estado})}"></span></td>
-          <td>
-            <form class="inline" th:action="@{/admin/mascotas/{id}/eliminar(id=${m.id})}" method="post"
-                  onsubmit="return confirm('¿Quitar del catálogo?');">
-              <button class="btn sm danger" type="submit">Eliminar</button>
-            </form>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <div class="vista-cabecera">
+      <h2>Refugios por aprobar <span class="tag" th:if="${!#lists.isEmpty(refugiosPendientes)}" th:text="${#lists.size(refugiosPendientes)}">0</span></h2>
+      <div class="buscador" th:if="${!#lists.isEmpty(refugiosPendientes)}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" data-filtro="tablaRefugios" placeholder="Buscar refugio" aria-label="Buscar refugio por aprobar">
+      </div>
+    </div>
+    <p class="muted" th:if="${#lists.isEmpty(refugiosPendientes)}">No hay refugios esperando aprobación.</p>
+    <th:block th:if="${!#lists.isEmpty(refugiosPendientes)}">
+      <p class="resultados" data-aviso="tablaRefugios"></p>
+      <div class="table-wrap">
+        <table class="tabla-apilada" id="tablaRefugios">
+          <thead><tr><th>Refugio</th><th>Correo</th><th>RUC / ONG</th><th></th></tr></thead>
+          <tbody>
+            <tr th:each="r : ${refugiosPendientes}">
+              <td data-label="Refugio" th:text="${r.nombre}"></td>
+              <td data-label="Correo" th:text="${r.email}"></td>
+              <td data-label="RUC / ONG" th:text="${r.documentoLegal}"></td>
+              <td class="acc" data-label="">
+                <form class="inline" th:action="@{/admin/refugios/{id}/aprobar(id=${r.id})}" method="post">
+                  <button class="btn sm" type="submit">Aprobar</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="sin-resultados" data-vacio="tablaRefugios" hidden>Ningún refugio coincide con tu búsqueda.</p>
+      </div>
+    </th:block>
+  </section>
+
+  <!-- ================= VISTA 2: USUARIOS ================= -->
+  <section class="vista" id="vista-usuarios" data-vista-id="usuarios" aria-labelledby="tit-usuarios">
+    <div class="vista-cabecera">
+      <h2 id="tit-usuarios">Usuarios</h2>
+      <div class="buscador">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" data-filtro="tablaUsuarios" placeholder="Buscar usuarios" aria-label="Buscar usuarios">
+      </div>
+    </div>
+    <p class="resultados" data-aviso="tablaUsuarios"></p>
+    <div class="table-wrap">
+      <table class="tabla-apilada" id="tablaUsuarios">
+        <thead><tr><th>Nombre</th><th>Correo</th><th>Identificación</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          <tr th:each="u : ${usuarios}">
+            <td data-label="Nombre" th:text="${u.nombre}"></td>
+            <td data-label="Correo" th:text="${u.email}"></td>
+            <td data-label="Identificación" th:text="${u.cedula != null ? u.cedula : (u.documentoLegal != null ? u.documentoLegal : '—')}"></td>
+            <td data-label="Rol" th:text="${#strings.capitalize(#strings.toLowerCase(u.rol))}"></td>
+            <td data-label="Estado"><span th:replace="~{fragments/layout :: estado(${u.estado})}"></span></td>
+            <td class="acc" data-label="">
+              <form class="inline" th:if="${u.estado.name() != 'BANNED'}"
+                    th:action="@{/admin/usuarios/{id}/ban(id=${u.id})}" method="post"
+                    onsubmit="return confirm('¿Agregar a la lista negra?');">
+                <button class="btn sm danger" type="submit">Banear</button>
+              </form>
+              <form class="inline" th:if="${u.estado.name() == 'BANNED'}"
+                    th:action="@{/admin/usuarios/{id}/desbanear(id=${u.id})}" method="post">
+                <button class="btn sm line" type="submit">Quitar ban</button>
+              </form>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="sin-resultados" data-vacio="tablaUsuarios" hidden>Ningún usuario coincide con tu búsqueda.</p>
+    </div>
+  </section>
+
+  <!-- ================= VISTA 3: MASCOTAS ================= -->
+  <section class="vista" id="vista-mascotas" data-vista-id="mascotas" aria-labelledby="tit-mascotas">
+    <div class="vista-cabecera">
+      <h2 id="tit-mascotas">Mascotas</h2>
+      <div class="buscador">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" data-filtro="tablaMascotas" placeholder="Buscar mascotas" aria-label="Buscar mascotas">
+      </div>
+    </div>
+    <p class="resultados" data-aviso="tablaMascotas"></p>
+    <div class="table-wrap">
+      <table class="tabla-apilada" id="tablaMascotas">
+        <thead><tr><th>Nombre</th><th>Refugio</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          <tr th:each="m : ${mascotas}">
+            <td data-label="Nombre" th:text="${m.nombre}"></td>
+            <td data-label="Refugio" th:text="${m.refugio.nombre}"></td>
+            <td data-label="Estado"><span th:replace="~{fragments/layout :: estado(${m.estado})}"></span></td>
+            <td class="acc" data-label="">
+              <form class="inline" th:action="@{/admin/mascotas/{id}/eliminar(id=${m.id})}" method="post"
+                    onsubmit="return confirm('¿Quitar del catálogo?');">
+                <button class="btn sm danger" type="submit">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="sin-resultados" data-vacio="tablaMascotas" hidden>Ninguna mascota coincide con tu búsqueda.</p>
+    </div>
+  </section>
 </main>
+
+<script>
+  // 1) Marca la página como "con JavaScript": el CSS entonces muestra una sola vista a la vez.
+  document.documentElement.classList.add('js');
+
+  var vistas = document.querySelectorAll('.vista');
+  var boton = document.getElementById('vistaBoton');
+  var etiqueta = document.getElementById('vistaEtiqueta');
+  var menu = document.getElementById('vistaMenu');
+  var opciones = menu.querySelectorAll('[data-vista]');
+  var nombres = { dashboard: 'Dashboard', usuarios: 'Usuarios', mascotas: 'Mascotas' };
+
+  // 2) Muestra la vista elegida y la recuerda (así, tras banear a alguien y recargar, vuelves a la misma vista).
+  function mostrar(id) {
+    if (!nombres[id]) id = 'dashboard';
+    vistas.forEach(function (v) { v.classList.toggle('activa', v.dataset.vistaId === id); });
+    etiqueta.textContent = nombres[id];
+    opciones.forEach(function (o) { o.setAttribute('aria-current', String(o.dataset.vista === id)); });
+    try { sessionStorage.setItem('adminVista', id); } catch (e) {}
+    history.replaceState(null, '', '#' + id);
+  }
+
+  // 3) Abrir y cerrar el menú desplegable.
+  function alternarMenu(abrir) {
+    menu.hidden = !abrir;
+    boton.setAttribute('aria-expanded', String(abrir));
+  }
+  boton.addEventListener('click', function () { alternarMenu(menu.hidden); });
+  opciones.forEach(function (o) {
+    o.addEventListener('click', function () { mostrar(o.dataset.vista); alternarMenu(false); boton.focus(); });
+  });
+  document.addEventListener('click', function (e) { if (!e.target.closest('.vista-selector')) alternarMenu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') alternarMenu(false); });
+
+  // 4) Buscadores: ocultan las filas que no contienen lo escrito (sin distinguir mayúsculas ni tildes).
+  function normalizar(texto) {
+    return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+  document.querySelectorAll('[data-filtro]').forEach(function (caja) {
+    var id = caja.dataset.filtro;
+    var filas = document.querySelectorAll('#' + id + ' tbody tr');
+    var aviso = document.querySelector('[data-aviso="' + id + '"]');
+    var vacio = document.querySelector('[data-vacio="' + id + '"]');
+    function filtrar() {
+      var q = normalizar(caja.value.trim());
+      var visibles = 0;
+      filas.forEach(function (fila) {
+        var celdas = fila.querySelectorAll('td:not(.acc)');
+        var texto = Array.prototype.map.call(celdas, function (c) { return c.textContent; }).join(' ');
+        var coincide = normalizar(texto).indexOf(q) !== -1;
+        fila.hidden = !coincide;
+        if (coincide) visibles++;
+      });
+      aviso.textContent = 'Mostrando ' + visibles + ' de ' + filas.length;
+      vacio.hidden = visibles !== 0;
+    }
+    caja.addEventListener('input', filtrar);
+    filtrar();
+  });
+
+  // 5) Vista inicial: la del enlace (#usuarios), si no la última que usaste, si no el dashboard.
+  var inicial = location.hash.replace('#', '');
+  if (!nombres[inicial]) { try { inicial = sessionStorage.getItem('adminVista'); } catch (e) {} }
+  mostrar(inicial);
+</script>
 <footer th:replace="~{fragments/layout :: pie}"></footer>
 </body>
 </html>

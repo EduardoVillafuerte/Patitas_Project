@@ -4,7 +4,7 @@
 <body>
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 <main class="container medium">
-  <h1 th:text="${mascotaId == null} ? '🐾 Registrar mascota' : '✏️ Editar mascota'">Mascota</h1>
+  <h1 th:text="${mascotaId == null} ? 'Registrar mascota' : 'Editar mascota'">Mascota</h1>
   <p class="muted">Los campos con <span class="req">*</span> son obligatorios. Mientras más datos reales pongas, mejor funciona la compatibilidad.</p>
   <div th:replace="~{fragments/layout :: mensajes}"></div>
 
@@ -13,7 +13,7 @@
         th:action="${mascotaId == null} ? @{/refugio/mascotas} : @{/refugio/mascotas/{id}(id=${mascotaId})}">
 
     <fieldset>
-      <legend>🐶 Datos básicos</legend>
+      <legend>Datos básicos</legend>
 
       <label for="nombre">Nombre <span class="req">*</span></label>
       <input id="nombre" type="text" th:field="*{nombre}" th:errorclass="invalid" required maxlength="60">
@@ -23,7 +23,9 @@
         <div>
           <label for="especie">Especie <span class="req">*</span></label>
           <input id="especie" type="text" th:field="*{especie}" th:errorclass="invalid" required maxlength="40"
-                 placeholder="Perro, gato...">
+                 placeholder="Perro, gato..." list="especies">
+          <!-- datalist: sugiere especies comunes pero deja escribir otra (así evitamos "perro", "Perro " y "PERRO" distintos). -->
+          <datalist id="especies"><option value="Perro"></option><option value="Gato"></option><option value="Conejo"></option></datalist>
           <div class="field-error" th:if="${#fields.hasErrors('especie')}" th:errors="*{especie}"></div>
         </div>
         <div>
@@ -40,7 +42,7 @@
     </fieldset>
 
     <fieldset>
-      <legend>⚡ Carácter y cuidados</legend>
+      <legend>Carácter y cuidados</legend>
 
       <div class="cols">
         <div>
@@ -73,14 +75,17 @@
       <p class="hint" id="ayudaPresupuesto">Cuánto cuesta al mes alimentarla y cuidarla. Se compara con el presupuesto del adoptante.</p>
       <div class="field-error" th:if="${#fields.hasErrors('presupuestoMinimo')}" th:errors="*{presupuestoMinimo}"></div>
 
-      <label>Etiquetas de cuidado</label>
-      <label class="check" th:each="e : ${todasEtiquetas}">
-        <input type="checkbox" th:field="*{etiquetas}" th:value="${e}"> <span th:text="${e.label}"></span>
-      </label>
+      <!-- Antes era una etiqueta de texto sin campo asociado; ahora es un grupo con nombre accesible. -->
+      <p class="label-grupo" id="tituloEtiquetas">Etiquetas de cuidado</p>
+      <div class="checks" role="group" aria-labelledby="tituloEtiquetas">
+        <label class="check" th:each="e : ${todasEtiquetas}">
+          <input type="checkbox" th:field="*{etiquetas}" th:value="${e}"> <span th:text="${e.label}"></span>
+        </label>
+      </div>
     </fieldset>
 
     <fieldset>
-      <legend>💉 Salud</legend>
+      <legend>Salud</legend>
       <label class="check"><input type="checkbox" th:field="*{vacunado}"> Vacunas al día</label>
       <label class="check"><input type="checkbox" th:field="*{esterilizado}"> Esterilizado</label>
 
@@ -92,7 +97,7 @@
 
     <!-- Solo al editar, y nunca si ya fue adoptada ("Adoptado" se alcanza completando una adopción). -->
     <fieldset th:if="${mascotaId != null and mascota.estado.name() != 'ADOPTADO'}">
-      <legend>📢 Publicación</legend>
+      <legend>Publicación</legend>
       <label for="estado">Estado</label>
       <select id="estado" th:field="*{estado}">
         <option th:each="e : ${estados}" th:value="${e}"
@@ -101,16 +106,16 @@
     </fieldset>
 
     <fieldset>
-      <legend>📷 Foto</legend>
+      <legend>Foto</legend>
       <label for="imagen">Imagen de la mascota</label>
       <input id="imagen" type="file" name="imagen" accept="image/*" aria-describedby="ayudaFoto">
       <p class="hint" id="ayudaFoto">JPG o PNG, máximo 3 MB.
         <span th:if="${mascotaId != null}">Si no eliges una foto nueva, se conserva la actual.</span></p>
     </fieldset>
 
-    <p style="margin-top:1.5rem">
-      <button class="btn" type="submit" th:text="${mascotaId == null} ? 'Registrar mascota' : 'Guardar cambios'">Guardar</button>
-      <a class="btn line" th:href="@{/refugio/panel}">Cancelar</a>
+    <p class="acciones-form">
+      <button class="btn lg" type="submit" th:text="${mascotaId == null} ? 'Registrar mascota' : 'Guardar cambios'">Guardar</button>
+      <a class="btn line lg" th:href="@{/refugio/panel}">Cancelar</a>
     </p>
   </form>
 </main>

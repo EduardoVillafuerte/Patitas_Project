@@ -1,342 +1,554 @@
+/* =====================================================================
+   PATITAS · hoja de estilos única (app.css)
 
-/* ---------- Variables (colores, sombras, radios) ---------- */
+   Cómo está organizada (busca el número con Ctrl+F):
+    1. Variables (colores, tipografía)      9. Paneles, tarjetas y fotos
+    2. Base de la página                   10. Tablas (y tablas apiladas en móvil)
+    3. Navegación y pie                    11. Compatibilidad (porcentaje)
+    4. Contenedores y utilidades           12. Inicio (portada)
+    5. Mensajes                            13. Login y registro
+    6. Botones                             14. Adoptante (perfil y detalle)
+    7. Etiquetas y estados                 15. Refugio y administrador
+    8. Formularios                         16. Error, animaciones y adaptación a móvil
+
+   Reglas de diseño que seguimos:
+   - Un solo color de acción (verde azulado). Los demás colores solo
+     comunican estados (ok, aviso, error).
+   - Superficies planas: se separan con un cambio de tono, no con sombras.
+   - Sin emojis como iconos, sin degradados.
+   ===================================================================== */
+
+
+/* ---------- 1. Variables ---------- */
 :root {
-  --pine: #17403a;  --pine-2: #245e55;
-  --teal: #0f766e;  --teal-dark: #115e59;
-  --coral: #c2410c; --coral-dark: #9a3412;
-  --grape: #6d28d9; --sky: #1d6fa5;
-  --sun: #f4b942;
+  /* Marca */
+  --pine: #12332d;          /* verde oscuro: barra superior, pie y títulos */
+  --accent: #0f766e;        /* ÚNICO color de acción (botones, enlaces)  · 5.5:1 con blanco */
+  --accent-dark: #0b5c56;   /* hover del color de acción */
+  --sun: #f2b134;           /* amarillo: solo detalles de marca (punto del logo, selección) */
 
-  --bg: #f4faf6;    --mist: #f4faf6;  --paper: #ffffff;
-  --ink: #1b2422;   --muted: #566560;
-  --mint: #dcf5ea;  --peach: #ffe8d6; --skybg: #dbf0fb; --lilac: #ebe3fc; --butter: #fff1c9;
+  /* Fondos (de más claro a más oscuro) */
+  --ground: #f5f7f3;        /* fondo de la página */
+  --surface: #ffffff;       /* paneles y tarjetas */
+  --tone: #e9efe9;          /* bloques secundarios */
+  --tone-2: #dbe5dd;        /* fotos sin imagen, barras */
 
-  --alert: #c62d2d; --alert-bg: #fdecec; --ok-bg: #e4f3ea;
-  --line: #d6e3dc;  --radius: 14px;
-  --score-high: #1a7340;  /* 5.9:1 con blanco */
-  --score-mid: #8a5a00;   /* 5.9:1 con blanco */
-  --field-border: #6f7f7a;/* 4.2:1 contra blanco */
-  --shadow: 0 2px 8px rgba(23, 64, 58, .08);
-  --shadow-hover: 0 12px 28px rgba(23, 64, 58, .16);
+  /* Texto */
+  --ink: #14231e;           /* texto principal · 15:1 sobre el fondo */
+  --muted: #4c5c55;         /* texto secundario · 6.5:1 sobre el fondo */
+
+  /* Estados */
+  --alert: #b42318;         --alert-bg: #fdeceb;   --alert-ink: #7a1b13;
+  --ok: #1a7340;            --ok-bg: #e3f1e8;      --ok-ink: #14532d;
+  --warn: #8a5a00;          --warn-bg: #fff4d6;    --warn-ink: #5f4200;
+  --info-bg: #e3eff8;       --info-ink: #164a6b;
+
+  /* Colores de apoyo para DATOS (dashboard, resumen del refugio, "cómo funciona").
+     Fondo suave + texto oscuro del mismo tono: contraste mayor a 7:1. */
+  --mint: #d6efe0;   --mint-ink: #14532d;
+  --sky: #d7e9f8;    --sky-ink: #164a6b;
+  --butter: #fcebb8; --butter-ink: #5f4200;
+  --peach: #ffdccb;  --peach-ink: #7a2e10;
+  --lilac: #e4dcf9;  --lilac-ink: #3d2a78;
+  --aqua: #cdeeea;   --aqua-ink: #0b5c56;
+  --rose: #fbd6d1;   --rose-ink: #7a1b13;
+
+  /* Fondo de animales (gatos, perros, conejos, huesos, huellas): SVG incrustado, no necesita archivos
+     ni permisos extra en Spring Security. "claro" es para fondos oscuros, el otro para fondos claros. */
+  --patron-animales: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='340' viewBox='0 0 340 340' fill='%230f766e' fill-opacity='.11'%3E%3Cg transform='translate%2818 22%29 rotate%28-18 20.4 20.4%29 scale%281.7%29'%3E%3Ccircle cx='5.5' cy='10' r='2.2'/%3E%3Ccircle cx='9.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='14.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='18.5' cy='10' r='2.2'/%3E%3Cpath d='M12 11c-3 0-6 3.2-6 6 0 2 1.6 3 3.2 3 1.2 0 1.9-.6 2.8-.6s1.6.6 2.8.6c1.6 0 3.2-1 3.2-3 0-2.8-3-6-6-6z'/%3E%3C/g%3E%3Cg transform='translate%28150 10%29 rotate%288 24.0 24.0%29 scale%282.0%29'%3E%3Cellipse cx='12' cy='14.5' rx='8' ry='7'/%3E%3Cpath d='M4.6 10 5.6 2.4 11 7.2z'/%3E%3Cpath d='M19.4 10 18.4 2.4 13 7.2z'/%3E%3C/g%3E%3Cg transform='translate%28262 30%29 rotate%28-8 21.6 21.6%29 scale%281.8%29'%3E%3Cellipse cx='8.4' cy='6.2' rx='2.3' ry='6'/%3E%3Cellipse cx='15.6' cy='6.2' rx='2.3' ry='6'/%3E%3Ccircle cx='12' cy='16' r='6.6'/%3E%3C/g%3E%3Cg transform='translate%2824 150%29 rotate%280 25.200000000000003 25.200000000000003%29 scale%282.1%29'%3E%3Cg transform='rotate%28-35 12 12%29'%3E%3Crect x='4' y='10' width='16' height='4' rx='2'/%3E%3Ccircle cx='4.6' cy='9.6' r='2.5'/%3E%3Ccircle cx='4.6' cy='14.4' r='2.5'/%3E%3Ccircle cx='19.4' cy='9.6' r='2.5'/%3E%3Ccircle cx='19.4' cy='14.4' r='2.5'/%3E%3C/g%3E%3C/g%3E%3Cg transform='translate%28160 140%29 rotate%28-6 25.200000000000003 25.200000000000003%29 scale%282.1%29'%3E%3Ccircle cx='12' cy='13' r='6'/%3E%3Cellipse cx='12' cy='17.5' rx='4' ry='3.3'/%3E%3Cpath d='M7 8.2C3.6 7.6 1.8 11 2.4 15.2 3 17.6 5.4 17.6 6.4 14.6z'/%3E%3Cpath d='M17 8.2c3.4-.6 5.2 2.8 4.6 7-.6 2.4-3 2.4-4 -.6z'/%3E%3C/g%3E%3Cg transform='translate%28282 168%29 rotate%2814 15.600000000000001 15.600000000000001%29 scale%281.3%29'%3E%3Cpath d='M12 21C5 16 2 12.5 2 9a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 3.5-3 7-10 12z'/%3E%3C/g%3E%3Cg transform='translate%2896 262%29 rotate%2822 18.0 18.0%29 scale%281.5%29'%3E%3Ccircle cx='5.5' cy='10' r='2.2'/%3E%3Ccircle cx='9.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='14.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='18.5' cy='10' r='2.2'/%3E%3Cpath d='M12 11c-3 0-6 3.2-6 6 0 2 1.6 3 3.2 3 1.2 0 1.9-.6 2.8-.6s1.6.6 2.8.6c1.6 0 3.2-1 3.2-3 0-2.8-3-6-6-6z'/%3E%3C/g%3E%3Cg transform='translate%28236 248%29 rotate%28-12 20.4 20.4%29 scale%281.7%29'%3E%3Cellipse cx='12' cy='14.5' rx='8' ry='7'/%3E%3Cpath d='M4.6 10 5.6 2.4 11 7.2z'/%3E%3Cpath d='M19.4 10 18.4 2.4 13 7.2z'/%3E%3C/g%3E%3Cg transform='translate%28140 88%29 rotate%28-10 10.8 10.8%29 scale%280.9%29'%3E%3Cpath d='M12 21C5 16 2 12.5 2 9a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 3.5-3 7-10 12z'/%3E%3C/g%3E%3Cg transform='translate%28300 96%29 rotate%2830 13.200000000000001 13.200000000000001%29 scale%281.1%29'%3E%3Ccircle cx='5.5' cy='10' r='2.2'/%3E%3Ccircle cx='9.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='14.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='18.5' cy='10' r='2.2'/%3E%3Cpath d='M12 11c-3 0-6 3.2-6 6 0 2 1.6 3 3.2 3 1.2 0 1.9-.6 2.8-.6s1.6.6 2.8.6c1.6 0 3.2-1 3.2-3 0-2.8-3-6-6-6z'/%3E%3C/g%3E%3C/svg%3E");
+  --patron-animales-claro: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='340' viewBox='0 0 340 340' fill='%23ffffff' fill-opacity='.07'%3E%3Cg transform='translate%2818 22%29 rotate%28-18 20.4 20.4%29 scale%281.7%29'%3E%3Ccircle cx='5.5' cy='10' r='2.2'/%3E%3Ccircle cx='9.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='14.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='18.5' cy='10' r='2.2'/%3E%3Cpath d='M12 11c-3 0-6 3.2-6 6 0 2 1.6 3 3.2 3 1.2 0 1.9-.6 2.8-.6s1.6.6 2.8.6c1.6 0 3.2-1 3.2-3 0-2.8-3-6-6-6z'/%3E%3C/g%3E%3Cg transform='translate%28150 10%29 rotate%288 24.0 24.0%29 scale%282.0%29'%3E%3Cellipse cx='12' cy='14.5' rx='8' ry='7'/%3E%3Cpath d='M4.6 10 5.6 2.4 11 7.2z'/%3E%3Cpath d='M19.4 10 18.4 2.4 13 7.2z'/%3E%3C/g%3E%3Cg transform='translate%28262 30%29 rotate%28-8 21.6 21.6%29 scale%281.8%29'%3E%3Cellipse cx='8.4' cy='6.2' rx='2.3' ry='6'/%3E%3Cellipse cx='15.6' cy='6.2' rx='2.3' ry='6'/%3E%3Ccircle cx='12' cy='16' r='6.6'/%3E%3C/g%3E%3Cg transform='translate%2824 150%29 rotate%280 25.200000000000003 25.200000000000003%29 scale%282.1%29'%3E%3Cg transform='rotate%28-35 12 12%29'%3E%3Crect x='4' y='10' width='16' height='4' rx='2'/%3E%3Ccircle cx='4.6' cy='9.6' r='2.5'/%3E%3Ccircle cx='4.6' cy='14.4' r='2.5'/%3E%3Ccircle cx='19.4' cy='9.6' r='2.5'/%3E%3Ccircle cx='19.4' cy='14.4' r='2.5'/%3E%3C/g%3E%3C/g%3E%3Cg transform='translate%28160 140%29 rotate%28-6 25.200000000000003 25.200000000000003%29 scale%282.1%29'%3E%3Ccircle cx='12' cy='13' r='6'/%3E%3Cellipse cx='12' cy='17.5' rx='4' ry='3.3'/%3E%3Cpath d='M7 8.2C3.6 7.6 1.8 11 2.4 15.2 3 17.6 5.4 17.6 6.4 14.6z'/%3E%3Cpath d='M17 8.2c3.4-.6 5.2 2.8 4.6 7-.6 2.4-3 2.4-4 -.6z'/%3E%3C/g%3E%3Cg transform='translate%28282 168%29 rotate%2814 15.600000000000001 15.600000000000001%29 scale%281.3%29'%3E%3Cpath d='M12 21C5 16 2 12.5 2 9a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 3.5-3 7-10 12z'/%3E%3C/g%3E%3Cg transform='translate%2896 262%29 rotate%2822 18.0 18.0%29 scale%281.5%29'%3E%3Ccircle cx='5.5' cy='10' r='2.2'/%3E%3Ccircle cx='9.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='14.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='18.5' cy='10' r='2.2'/%3E%3Cpath d='M12 11c-3 0-6 3.2-6 6 0 2 1.6 3 3.2 3 1.2 0 1.9-.6 2.8-.6s1.6.6 2.8.6c1.6 0 3.2-1 3.2-3 0-2.8-3-6-6-6z'/%3E%3C/g%3E%3Cg transform='translate%28236 248%29 rotate%28-12 20.4 20.4%29 scale%281.7%29'%3E%3Cellipse cx='12' cy='14.5' rx='8' ry='7'/%3E%3Cpath d='M4.6 10 5.6 2.4 11 7.2z'/%3E%3Cpath d='M19.4 10 18.4 2.4 13 7.2z'/%3E%3C/g%3E%3Cg transform='translate%28140 88%29 rotate%28-10 10.8 10.8%29 scale%280.9%29'%3E%3Cpath d='M12 21C5 16 2 12.5 2 9a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 3.5-3 7-10 12z'/%3E%3C/g%3E%3Cg transform='translate%28300 96%29 rotate%2830 13.200000000000001 13.200000000000001%29 scale%281.1%29'%3E%3Ccircle cx='5.5' cy='10' r='2.2'/%3E%3Ccircle cx='9.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='14.5' cy='5.5' r='2.2'/%3E%3Ccircle cx='18.5' cy='10' r='2.2'/%3E%3Cpath d='M12 11c-3 0-6 3.2-6 6 0 2 1.6 3 3.2 3 1.2 0 1.9-.6 2.8-.6s1.6.6 2.8.6c1.6 0 3.2-1 3.2-3 0-2.8-3-6-6-6z'/%3E%3C/g%3E%3C/svg%3E");
+
+  /* Bordes de formularios y tablas */
+  --line: #d5ded7;
+  --field-border: #6b7b74;  /* 4.5:1 contra blanco */
+
+  --radius: 12px;
+  --font-title: "Bricolage Grotesque", "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-text: "Figtree", "Segoe UI", system-ui, sans-serif;
 }
 
-/* ---------- Base de la página ---------- */
+
+/* ---------- 2. Base de la página ---------- */
 * { box-sizing: border-box; }
-body { margin: 0; color: var(--ink); min-height: 100vh; display: flex; flex-direction: column;
-  font-family: "Nunito", "Quicksand", "Avenir Next", "Segoe UI", system-ui, sans-serif; line-height: 1.55;
-  background-color:#F8F9FA;}
+html { scroll-padding-top: 5rem; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  background: var(--ground); color: var(--ink);
+  font-family: var(--font-text); font-size: 1.0625rem; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  accent-color: var(--accent);   /* casillas y selectores del navegador con nuestro color */
+  caret-color: var(--accent);
+}
 main { flex: 1; width: 100%; }
-h1, h2, h3 { letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 .5rem; color: var(--pine); }
-h1 { font-size: 2rem; font-weight: 800; }
-h2 { font-size: 1.35rem; font-weight: 800; margin-top: 2rem; padding-left: .7rem; border-left: 6px solid var(--sun); }
-h3 { font-size: 1.1rem; font-weight: 700; }
-a { color: var(--teal); }
-:focus-visible { outline: 3px solid var(--pine-2); outline-offset: 2px; }
+[hidden] { display: none !important; }   /* el atributo hidden siempre oculta, aunque otra regla ponga display */
+::selection { background: var(--sun); color: var(--ink); }
 
-/* ---------- Navegación ---------- */
-.nav { background: linear-gradient(90deg, var(--pine), var(--teal)); color: #fff; display: flex; align-items: center;
-  gap: .4rem 1rem; padding: .7rem 1.5rem; flex-wrap: wrap; box-shadow: 0 3px 12px rgba(23, 64, 58, .3);
-  position: sticky; top: 0; z-index: 10; }
-.nav a, .nav button { color: #fff; text-decoration: none; font-size: .95rem; background: none; border: 0;
-  cursor: pointer; font-family: inherit; padding: .3rem .7rem; border-radius: 999px; }
-.nav a:hover, .nav button:hover { background: rgba(255, 255, 255, .2); }
-.nav .brand { font-weight: 800; font-size: 1.25rem; margin-right: auto; padding-left: 0; }
-.nav .brand:hover { background: none; }
-.nav .brand .dot { color: var(--sun); }
-.nav form { margin: 0; }
-.nav .who { opacity: .92; font-size: .85rem; }
+h1, h2, h3 {
+  font-family: var(--font-title); color: var(--pine);
+  line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 .5rem; text-wrap: balance;
+}
+h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 700; }
+h2 { font-size: clamp(1.4rem, 2.6vw, 1.8rem); font-weight: 700; margin-top: 3rem; }
+h3 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
+/* Títulos de bloque (tarjetas, paneles, estados vacíos): son <h2> para que el orden de encabezados sea correcto
+   (h1 -> h2 -> h3), pero se ven como títulos pequeños. */
+.card h2, .panel h2, .vacio h2, .atencion h2, .todo-ok h2 { font-size: 1.15rem; letter-spacing: -0.01em; margin-top: 0; }
+p { margin: 0 0 1rem; }
+a { color: var(--accent-dark); text-underline-offset: .2em; }
+a:hover { color: var(--pine); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+
+/* ---------- 3. Navegación y pie ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; flex-wrap: wrap; gap: .25rem .5rem;
+  padding: .75rem max(1.5rem, calc((100% - 1120px) / 2 + 1.25rem)); background: var(--pine); color: #fff;
+}
+.nav a, .nav button {
+  color: #fff; text-decoration: none; font: inherit; font-size: .95rem; font-weight: 600;
+  background: none; border: 0; cursor: pointer; padding: .4rem .8rem; border-radius: 999px;
+  transition: background .15s ease;
+}
+.nav a:hover, .nav button:hover { background: rgba(255, 255, 255, .14); color: #fff; }
 .nav :focus-visible { outline-color: #fff; }
+.nav-links { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem .5rem; }
+.nav button.nav-toggle { display: none; margin-left: auto; padding: .45rem; line-height: 0; border: 1.5px solid rgba(255, 255, 255, .5); border-radius: 12px; }
+.nav-toggle svg { width: 1.5rem; height: 1.5rem; }
+.nav .brand {
+  display: inline-flex; align-items: center; gap: .5rem; margin-right: auto; padding-left: 0;
+  font-family: var(--font-title); font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em;
+}
+.nav .brand:hover { background: none; }
+.nav .marca { width: 1.5rem; height: 1.5rem; fill: var(--sun); }   /* huella dibujada en layout.html */
+.nav .dot { color: var(--sun); }
+.nav .who { font-size: .9rem; color: #cfe3da; padding: 0 .5rem; }
+.nav form { margin: 0; }
+.nav form button { border: 1.5px solid rgba(255, 255, 255, .5); }
 
-/* ---------- Contenedores y utilidades ---------- */
-.container { max-width: 1040px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-.narrow { max-width: 460px; }
+.pie { margin-top: 4rem; padding: 2.5rem 0; background: var(--pine); color: #cfe3da; }
+.pie-interior { max-width: 1120px; margin: 0 auto; padding: 0 1.25rem; }
+.pie p { margin: 0; }
+.pie-marca { font-family: var(--font-title); font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; color: #fff; }
+.pie-marca span { color: var(--sun); }
+
+
+/* ---------- 4. Contenedores y utilidades ---------- */
+.container { max-width: 1120px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
 .container.medium { max-width: 720px; }
+.container.narrow { max-width: 520px; }
 .muted { color: var(--muted); }
-.small { font-size: .85rem; }
+.small { font-size: .88rem; }
 .centrado { text-align: center; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 .inline { display: inline; margin: 0; }
+.acciones { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.acciones-form { margin-top: 2rem; display: flex; flex-wrap: wrap; gap: .6rem; }
+.volver { display: inline-block; margin-bottom: 1.25rem; font-weight: 600; }
 
-/* ---------- Mensajes ---------- */
-.alert { padding: .8rem 1rem; border-radius: var(--radius); margin-bottom: 1rem; border: 1px solid var(--line); }
-.alert::before { margin-right: .5rem; }
-.alert.ok { background: var(--ok-bg); border-color: #b9dcc6; }
-.alert.ok::before { content: "✅"; }
-.alert.err { background: var(--alert-bg); border-color: #f0b8b8; color: #7d1a1a; }
-.alert.err::before { content: "⚠️"; }
-.alert.warn { background: var(--butter); border-color: #ecd48a; }
-.alert.warn::before { content: "⏳"; }
-.alert.red { background: var(--alert); color: #fff; border-color: var(--alert); font-weight: 600; }
-.alert.red::before { content: "🚨"; }
-.alert.info { background: var(--skybg); border-color: #a9d3ec; }
-.alert.info::before { content: "💡"; }
 
-/* ---------- Paneles ---------- */
-.panel { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem;
-  margin-bottom: 1.25rem; box-shadow: var(--shadow); }
+/* ---------- 5. Mensajes ---------- */
+/* Sin emojis ni barras de color: el fondo y el texto ya indican el tipo de mensaje. */
+.alert { padding: .85rem 1.1rem; border-radius: var(--radius); margin-bottom: 1rem; font-weight: 500;
+  background: var(--info-bg); color: var(--info-ink); }
+.alert strong { font-weight: 700; }
+.alert.ok   { background: var(--ok-bg);    color: var(--ok-ink); }
+.alert.err  { background: var(--alert-bg); color: var(--alert-ink); }
+.alert.warn { background: var(--warn-bg);  color: var(--warn-ink); }
+.alert.red  { background: var(--alert);    color: #fff; font-weight: 600; }
+.panel .alert { margin-top: .75rem; }
 
-/* ---------- Tarjetas de mascota (portada, catálogo y panel del refugio) ---------- */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.25rem; }
-.card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
-  display: flex; flex-direction: column; box-shadow: var(--shadow); transition: transform .15s ease, box-shadow .15s ease; }
-.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
-.card .body { padding: 1rem; display: flex; flex-direction: column; gap: .5rem; flex: 1; }
 
-/* Foto de la mascota (si no hay foto, fondo de colores con el emoji de la especie) */
-.foto { aspect-ratio: 4 / 3; background: linear-gradient(135deg, var(--mint), var(--skybg) 55%, var(--lilac));
-  display: flex; align-items: center; justify-content: center; font-size: 3.8rem; overflow: hidden; }
-.foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-/* ---------- Etiquetas y estados ---------- */
-.chips { display: flex; flex-wrap: wrap; gap: .35rem; }
-.tag { display: inline-block; font-size: .78rem; padding: .12rem .6rem; border-radius: 999px;
-  background: var(--lilac); border: 1px solid #d3c5f5; margin: 0 .25rem .25rem 0; }
-.chips .tag { margin: 0; }
-.tag.estado-DISPONIBLE, .tag.estado-ACTIVO, .tag.estado-APROBADA, .tag.estado-ENTREGADO { background: var(--mint); border-color: #b9dcc6; }
-.tag.estado-EN_PROCESO, .tag.estado-PENDIENTE, .tag.estado-PENDIENTE_APROBACION { background: var(--butter); border-color: #ecd48a; }
-.tag.estado-BANNED, .tag.estado-RECHAZADA, .tag.estado-VENCIDO { background: var(--alert-bg); border-color: #f0b8b8; }
-.tag.estado-ADOPTADO, .tag.estado-COMPLETADA { background: var(--skybg); border-color: #a9d3ec; }
-
-/* ---------- Botones ---------- */
-.btn { display: inline-block; background: var(--teal); color: #fff; border: 0; padding: .6rem 1.15rem;
-  border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none;
-  transition: background .15s ease, transform .15s ease; }
-.btn:hover { background: var(--teal-dark); }
+/* ---------- 6. Botones ---------- */
+/* Todos redondeados (decisión única). Una sola acción principal por pantalla. */
+.btn {
+  display: inline-block; background: var(--accent); color: #fff; border: 2px solid var(--accent);
+  padding: calc(.6rem - 2px) calc(1.2rem - 2px); border-radius: 999px;
+  font: inherit; font-weight: 700; line-height: 1.3; text-align: center; text-decoration: none; cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); color: #fff; }
 .btn:active { transform: scale(.98); }
-.btn.sun { background: var(--sun); color: var(--ink); }
-.btn.sun:hover { background: #e5a823; }
-.btn.coral { background: var(--coral); }
-.btn.coral:hover { background: var(--coral-dark); }
-.btn.line { background: transparent; color: var(--teal); border: 2px solid var(--teal); padding: calc(.6rem - 2px) calc(1.15rem - 2px); }
-.btn.line:hover { background: var(--teal); color: #fff; }
-.btn.danger { background: var(--alert); }
-.btn.danger:hover { background: #a32222; }
+.btn.line { background: transparent; color: var(--accent-dark); }
+.btn.line:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.danger { background: var(--alert); border-color: var(--alert); }
+.btn.danger:hover { background: #8f1c12; border-color: #8f1c12; }
+.btn.claro { background: #fff; border-color: #fff; color: var(--pine); }
+.btn.claro:hover { background: var(--tone); border-color: var(--tone); color: var(--pine); }
+.btn.sm { padding: calc(.3rem - 2px) calc(.85rem - 2px); font-size: .88rem; }
+.btn.lg { padding: calc(.8rem - 2px) calc(1.6rem - 2px); font-size: 1.05rem; }
+.btn.block { display: block; width: 100%; }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
-.btn.sm { padding: .3rem .8rem; font-size: .85rem; }
-.btn.sm.line { padding: calc(.3rem - 2px) calc(.8rem - 2px); }
-.btn.lg { padding: .8rem 1.5rem; font-size: 1.05rem; }
 
-/* ---------- Formularios ---------- */
-label { display: block; font-weight: 700; margin: .9rem 0 .25rem; }
-label.check { display: flex; align-items: center; gap: .5rem; font-weight: 400; margin: .4rem 0; }
-input[type=text], input[type=email], input[type=password], input[type=number], input[type=tel], input[type=date],
+
+/* ---------- 7. Etiquetas y estados ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tag { display: inline-block; font-size: .82rem; font-weight: 600; padding: .15rem .7rem; border-radius: 999px;
+  background: var(--tone); color: var(--ink); }
+/* La clase "estado-XXX" la agrega el fragmento "estado" de layout.html con el valor del enum. */
+.tag.estado-DISPONIBLE, .tag.estado-ACTIVO, .tag.estado-APROBADA, .tag.estado-ENTREGADO { background: var(--ok-bg); color: var(--ok-ink); }
+.tag.estado-EN_PROCESO, .tag.estado-PENDIENTE, .tag.estado-PENDIENTE_APROBACION { background: var(--warn-bg); color: var(--warn-ink); }
+.tag.estado-BANNED, .tag.estado-RECHAZADA, .tag.estado-VENCIDO { background: var(--alert-bg); color: var(--alert-ink); }
+.tag.estado-ADOPTADO, .tag.estado-COMPLETADA { background: var(--info-bg); color: var(--info-ink); }
+
+
+/* ---------- 8. Formularios ---------- */
+label { display: block; font-weight: 700; margin: 1rem 0 .3rem; }
+label.check { display: flex; align-items: center; gap: .6rem; font-weight: 400; margin: .45rem 0; }
+input[type=text], input[type=email], input[type=password], input[type=number], input[type=tel], input[type=date], input[type=search],
 select, textarea, input[type=file] {
-  width: 100%; padding: .6rem .75rem; border: 1px solid var(--field-border); border-radius: 10px; font: inherit; background: #fff; }
-input:focus, select:focus, textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15, 118, 110, .22); }
-textarea { min-height: 90px; resize: vertical; }
+  width: 100%; padding: .65rem .8rem; border: 1px solid var(--field-border); border-radius: 10px;
+  font: inherit; color: var(--ink); background: #fff;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: 3px solid rgba(15, 118, 110, .3); outline-offset: 1px; }
+input::placeholder, textarea::placeholder { color: #66756e; }
+input[type=file]::file-selector-button {
+  font: inherit; font-weight: 700; margin-right: .75rem; padding: .3rem .8rem; border: 0; border-radius: 999px;
+  background: var(--tone); color: var(--ink); cursor: pointer;
+}
+input[type=search] { -webkit-appearance: none; appearance: none; }
+textarea { min-height: 96px; resize: vertical; }
 input.invalid, select.invalid, textarea.invalid { border-color: var(--alert); border-width: 2px; }
-.field-error { color: var(--alert); font-size: .85rem; margin-top: .2rem; font-weight: 600; }
-.hint { color: var(--muted); font-size: .85rem; margin: .25rem 0 0; }
+.field-error { color: var(--alert); font-size: .88rem; margin-top: .25rem; font-weight: 600; }
+.hint { color: var(--muted); font-size: .88rem; margin: .3rem 0 0; }
 .req { color: var(--alert); }
-fieldset { border: 2px solid var(--line); border-radius: var(--radius); padding: .25rem 1rem 1rem; margin: 1.25rem 0 0; background: #fcfefd; }
-legend { font-weight: 800; padding: 0 .5rem; color: var(--pine); font-size: 1.05rem; }
-fieldset > label:first-of-type { margin-top: .5rem; }
-.chip-btn { font: inherit; font-size: .85rem; cursor: pointer; background: var(--peach); color: var(--ink);
-  border: 1px solid #f5c9a6; border-radius: 999px; padding: .2rem .7rem; }
-.chip-btn:hover { background: #ffd9bd; }
+/* Grupos de campos: se separan con espacio y un título, sin cajas dentro de cajas. */
+fieldset { border: 0; padding: 0; margin: 2.25rem 0 0; }
+fieldset:first-of-type { margin-top: 0; }
+legend { padding: 0; font-family: var(--font-title); font-weight: 700; font-size: 1.3rem; color: var(--pine); }
+fieldset > label:first-of-type { margin-top: .75rem; }
+.label-grupo { font-weight: 700; margin: 1rem 0 .3rem; }
+.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0 .75rem; }
 
-/* ---------- Tablas (postulaciones del adoptante y panel admin) ---------- */
-table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-th, td { padding: .65rem .8rem; text-align: left; border-bottom: 1px solid var(--line); font-size: .92rem; vertical-align: top; }
-th { background: var(--mint); font-weight: 800; color: var(--pine); }
-tbody tr:hover { background: #f7fbf9; }
-.table-wrap { overflow-x: auto; }
 
-/* ---------- Pie de página ---------- */
-.pie { text-align: center; padding: 1.5rem 1rem; color: var(--muted); font-size: .9rem;
-  background: linear-gradient(180deg, transparent, #e6f6ee); border-top: 1px solid var(--line); }
-.pie p { margin: 0; }
+/* ---------- 9. Paneles, tarjetas y fotos ---------- */
+.panel { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+.panel label:first-child { margin-top: 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+.card { background: var(--surface); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column;
+  transition: transform .18s ease; }
+.card:hover { transform: translateY(-3px); }
+.card .body { padding: 1.1rem 1.25rem 1.25rem; display: flex; flex-direction: column; gap: .5rem; flex: 1; }
+.card .body p, .card h2, .card h3 { margin: 0; }
+.card .body > .btn { margin-top: auto; }
+.card .acciones { margin-top: auto; padding-top: .5rem; }
 
-/* ---------- Adaptación a pantallas pequeñas y accesibilidad (general) ---------- */
-@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
-@media (max-width: 600px) {
-  h1 { font-size: 1.6rem; }
-  .container { padding: 1.25rem .9rem 3rem; }
-  .nav { gap: .25rem .5rem; padding: .6rem 1rem; }
+/* Foto de la mascota. Si no tiene imagen se muestra la inicial de su nombre sobre un tono plano. */
+.foto { aspect-ratio: 4 / 3; background: var(--tone-2); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.foto .inicial { font-family: var(--font-title); font-size: 5rem; font-weight: 800; line-height: 1; color: var(--accent-dark); }
+
+.vacio { text-align: center; padding: 2.5rem 1.5rem; background: var(--tone); border-radius: var(--radius); margin-bottom: 1.25rem; }
+.vacio p { margin-left: auto; margin-right: auto; max-width: 42ch; }
+
+
+/* ---------- 10. Tablas ---------- */
+/* Sin franjas de color ni cebra: solo líneas finas y alineación. */
+.table-wrap { overflow-x: auto; background: var(--surface); border-radius: var(--radius); margin-bottom: 1.25rem; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: .85rem 1rem; text-align: left; border-bottom: 1px solid var(--line); font-size: .95rem; vertical-align: middle; }
+th { font-weight: 700; color: var(--muted); font-size: .88rem; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--ground); }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+/* En teléfonos cada fila se convierte en una tarjeta: el nombre de la columna sale del atributo data-label. */
+@media (max-width: 700px) {
+  .tabla-apilada thead { display: none; }
+  .tabla-apilada, .tabla-apilada tbody, .tabla-apilada tr, .tabla-apilada td { display: block; }
+  .tabla-apilada tr { padding: .75rem 1rem; border-bottom: 1px solid var(--line); }
+  .tabla-apilada tbody tr:last-child { border-bottom: 0; }
+  .tabla-apilada td { display: flex; justify-content: space-between; align-items: center; gap: 1rem; border: 0; padding: .3rem 0; text-align: right; }
+  .tabla-apilada td::before { content: attr(data-label); font-weight: 700; color: var(--muted); font-size: .85rem; text-align: left; flex-shrink: 0; }
+  .tabla-apilada td[data-label=""]::before { content: none; }
+  .tabla-apilada td.acc { justify-content: flex-end; padding-top: .6rem; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .card, .btn { transition: none; }
-  .card:hover { transform: none; }
-}
 
-/*INICIO · LOGIN Y REGISTRO (templates/login.html y registro.html)*/
 
-/* ---------- Registro: cabecera ilustrada ---------- */
-.auth-cabecera { text-align: center; background: linear-gradient(135deg, var(--mint), var(--skybg) 60%, var(--lilac));
-  border-radius: var(--radius); padding: 1.25rem 1rem; margin-bottom: 1.25rem; border: 1px solid var(--line); }
-.auth-cabecera .emoji { font-size: 2.8rem; display: block; }
-.auth-cabecera h1 { margin-bottom: .25rem; }
-.auth-cabecera p { margin: 0; color: var(--muted); }
+/* ---------- 11. Compatibilidad (catálogo, detalle y refugio) ---------- */
+.score { font-weight: 800; font-size: 1rem; padding: .1rem .75rem; border-radius: 999px; color: #fff; white-space: nowrap;
+  font-variant-numeric: tabular-nums; }
+.score.high { background: var(--ok); }
+.score.mid  { background: var(--warn); }
+.score.low  { background: var(--alert); }
+.meter { height: 6px; background: var(--tone-2); border-radius: 999px; overflow: hidden; }
+.meter span { display: block; height: 100%; border-radius: 999px; }
+.meter .high { background: var(--ok); }
+.meter .mid  { background: var(--warn); }
+.meter .low  { background: var(--alert); }
 
-/* ---------- Login: dos columnas (bienvenida + formulario) */
-.container.login-page { max-width: 900px; padding-top: 2.5rem; }
-.login-card { display: grid; grid-template-columns: 1fr 1.1fr; border-radius: 24px; overflow: hidden;
-  background: var(--paper); box-shadow: var(--shadow-hover); border: 1px solid var(--line); }
-.login-lado { position: relative; overflow: hidden; color: #fff; padding: 2.25rem 1.75rem;
-  background: linear-gradient(160deg, var(--pine), var(--teal)); display: flex; flex-direction: column; justify-content: center; }
-.login-lado::before { content: ""; position: absolute; right: -70px; top: -70px; width: 220px; height: 220px;
-  border-radius: 50%; background: rgba(244, 185, 66, .3); }
-.login-lado::after { content: ""; position: absolute; left: -50px; bottom: -60px; width: 190px; height: 190px;
-  border-radius: 50%; background: rgba(255, 255, 255, .12); }
-.login-lado > * { position: relative; z-index: 1; }
-.login-emojis { font-size: 3rem; letter-spacing: .3rem; }
-.login-lema { font-size: 1.6rem; font-weight: 800; line-height: 1.2; margin: .5rem 0 1.25rem; }
-.login-beneficios { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; }
-.login-beneficios li { background: rgba(255, 255, 255, .16); border-radius: 12px; padding: .6rem .8rem; font-size: .95rem; }
-.login-form { padding: 2.25rem 2rem; }
-.login-form h1 { font-size: 1.7rem; }
+
+/* ---------- 12. Inicio (portada: templates/public/inicio.html) ---------- */
+/* El título ocupa todo el ancho (2 líneas); debajo van el texto y las fotos reales de las mascotas. */
+.hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 2rem 3rem; align-items: start; padding: 1.5rem 0 1rem; }
+.hero h1 { grid-column: 1 / -1; font-size: clamp(2rem, 6.2vw, 4.5rem); line-height: 1.02; letter-spacing: -0.035em; font-weight: 800; }
+.hero.solo { grid-template-columns: 1fr; }
+.hero-intro { font-size: 1.25rem; max-width: 36rem; margin-bottom: 1.75rem; }
+.hero-fotos { display: grid; grid-template-columns: 1.3fr 1fr; grid-auto-rows: minmax(130px, 1fr); gap: .75rem; }
+.hero-fotos figure { margin: 0; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); overflow: hidden; }
+.hero-fotos figure:first-child { grid-row: span 2; }
+.hero-fotos .foto { aspect-ratio: auto; flex: 1; min-height: 130px; }
+.hero-fotos figcaption { padding: .55rem .9rem; font-weight: 700; font-size: .95rem; }
+
+.seccion { margin-top: clamp(4rem, 9vw, 7rem); }
+.seccion h2 { margin-top: 0; }
+.seccion-cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem 1.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.seccion-cabecera p { margin: 0; }
+
+.como ol { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+.como li { border-radius: 20px; padding: 1.75rem; }
+.como li:nth-child(1) { background: var(--mint);   color: var(--mint-ink); }
+.como li:nth-child(2) { background: var(--butter); color: var(--butter-ink); }
+.como li:nth-child(3) { background: var(--sky);    color: var(--sky-ink); }
+.como h3 { font-size: 1.35rem; color: inherit; }
+.como p { margin: 0; max-width: 34ch; }
+
+.cta-refugio { display: grid; grid-template-columns: 1.4fr auto; gap: 2rem; align-items: center;
+  background-color: var(--pine); background-image: var(--patron-animales-claro); background-size: 300px;
+  color: #d7e8e0; border-radius: 20px; padding: clamp(1.5rem, 4vw, 3rem); }
+.cta-refugio h2 { color: #fff; }
+.cta-refugio p { margin: 0; max-width: 52ch; }
+
+
+/* ---------- 13. Login y registro ---------- */
+/* Fondo de animales: la variable --patron-animales se define arriba, en :root. Lo usan login y registro. */
+.login-fondo { flex: 1; display: flex; align-items: center; background-color: var(--tone); background-image: var(--patron-animales); background-size: 340px; }
+.login-fondo > .container { margin: 0 auto; width: 100%; }
+.login-fondo ~ .pie { margin-top: 0; }   /* el fondo llega hasta el pie, sin franja en medio */
+.container.login-page { max-width: 960px; padding-top: 2.5rem; padding-bottom: 3rem; }
+.login-card { display: grid; grid-template-columns: .9fr 1.1fr; border-radius: 20px; overflow: hidden; background: var(--surface); }
+/* Columna de bienvenida: el contenido va centrado y compacto (antes dejaba un hueco enorme arriba). */
+.login-lado { background-color: var(--pine); background-image: var(--patron-animales-claro); background-size: 300px; color: #fff;
+  padding: 2rem; display: flex; flex-direction: column; justify-content: center; gap: 1.5rem; }
+.login-lema { font-family: var(--font-title); font-size: clamp(1.8rem, 3vw, 2.3rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.03em; margin: 0; }
+.login-beneficios { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+.login-beneficios li { color: #d7e8e0; font-size: 1rem; }
+.login-beneficios strong { display: block; color: #fff; }
+.login-form { padding: 2.25rem; }
+.login-form h1 { font-size: 1.9rem; }
+.login-form .btn-login { margin-top: 1.75rem; }   /* separación entre la contraseña y el botón */
+.btn .pata { width: 1.15em; height: 1.15em; fill: currentColor; vertical-align: -.2em; margin-right: .5rem; }
+.login-form .registrate { margin: 1.25rem 0 0; }
 
 /* Campo de contraseña con botón "Mostrar / Ocultar" */
 .campo-clave { position: relative; }
-.campo-clave input { padding-right: 6.5rem; }
+.campo-clave input { padding-right: 5.5rem; }
 .ver-clave { position: absolute; right: .35rem; top: 50%; transform: translateY(-50%); background: none; border: 0;
-  color: var(--teal); font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; padding: .3rem .5rem; border-radius: 8px; }
-.ver-clave:hover { background: var(--mint); }
+  color: var(--accent-dark); font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; padding: .3rem .6rem; border-radius: 8px; }
+.ver-clave:hover { background: var(--tone); }
 
-/* Cuentas de prueba  */
-details.demo { background: var(--butter); border-radius: 12px; padding: .6rem .9rem; margin-top: 1rem; }
-details.demo summary { cursor: pointer; font-weight: 700; color: var(--pine); }
-details.demo .hint { margin: .5rem 0; }
+.auth-cabecera { margin-bottom: 1.5rem; }
+.auth-cabecera p { margin: 0; color: var(--muted); }
 
-@media (max-width: 720px) {
-  .login-card { grid-template-columns: 1fr; }
-  .login-lado { padding: 1.25rem; }
-  .login-beneficios { display: none; }
-  .login-emojis { font-size: 2.2rem; }
-  .login-lema { margin-bottom: 0; font-size: 1.3rem; }
-  .login-form { padding: 1.5rem 1.25rem; }
+
+/* ---------- 14. Adoptante: perfil, catálogo y detalle ---------- */
+/* PERFIL: barra lateral con "tu tarjeta" a la izquierda y el formulario en tarjetas a la derecha.
+   En pantallas anchas el formulario usa 2 columnas; en teléfono todo se apila. */
+.container.amplio { max-width: 1320px; }
+/* Si la página es ancha (perfil), la barra superior y el pie se alinean con ese mismo ancho. */
+body:has(.amplio) .nav { padding-inline: max(1.5rem, calc((100% - 1320px) / 2 + 1.25rem)); }
+body:has(.amplio) .pie-interior { max-width: 1320px; }
+.perfil-layout { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 2rem; align-items: start; }
+.perfil-lado { position: sticky; top: 5.5rem; border-radius: 20px; padding: 2rem 1.75rem; color: #d7e8e0;
+  background-color: var(--pine); background-image: var(--patron-animales-claro); background-size: 300px; }
+.perfil-lado h1 { margin: 1rem 0 .25rem; font-size: 1.9rem; color: #fff; overflow-wrap: anywhere; }
+.perfil-meta { margin: 0 0 .25rem; color: #fff; font-weight: 600; }
+.perfil-lado .avatar { width: 96px; height: 96px; font-size: 2.8rem; background: var(--sun); color: var(--pine); }
+.avatar { width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  background: var(--accent); color: #fff; font-family: var(--font-title); font-size: 2rem; font-weight: 700; }
+.perfil-nota { margin-top: 1.5rem; padding: 1rem 1.1rem; border-radius: 14px; background: rgba(255, 255, 255, .1); }
+.perfil-nota h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: #fff; }
+.perfil-nota p { margin: 0 0 .6rem; font-size: .92rem; }
+.perfil-nota p:last-child { margin: 0; }
+.perfil-principal > p.muted { margin-top: 0; }
+.perfil-form { display: grid; grid-template-columns: 1fr; gap: 1.25rem; align-items: start; }
+.perfil-form fieldset.panel { margin: 0; min-width: 0; }
+/* El <legend> de un fieldset se monta sobre el borde; con float queda como un título normal dentro de la tarjeta. */
+.perfil-form legend { float: left; width: 100%; margin-bottom: .25rem; }
+.perfil-form legend + * { clear: both; }
+.perfil-form .cols { grid-template-columns: 1fr; gap: 0; }
+.barra-guardar { display: flex; gap: .6rem; }
+@media (min-width: 1100px) {
+  .perfil-form { grid-template-columns: 1fr 1fr; }
+  .perfil-form .panel-ancho, .barra-guardar { grid-column: 1 / -1; }
+}
+/* En teléfono el botón de guardar queda fijo abajo para no tener que volver al final del formulario. */
+@media (max-width: 700px) {
+  .barra-guardar { position: sticky; bottom: 0; z-index: 5; margin: 0 -.9rem -3rem; padding: .75rem .9rem; background: var(--tone); }
+  .barra-guardar .btn { width: 100%; }
 }
 
-/* INICIO · ADOPTANTE */
-
-/* Perfil: cabecera con avatar */
-.perfil-cabecera { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.25rem;
-  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow);
-  border-left: 8px solid var(--coral); }
-.avatar { width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 2.3rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--coral), var(--grape)); flex-shrink: 0; }
-.perfil-cabecera h1 { margin: 0; font-size: 1.7rem; }
-.perfil-cabecera p { margin: .15rem 0 .4rem; }
-.tag.hobby { background: var(--peach); border-color: #f5c9a6; font-size: .85rem; }
-
-/*Compatibilidad (catálogo, detalle; también lo usa el refugio)*/
-.score { font-weight: 800; font-size: 1.1rem; padding: .1rem .7rem; border-radius: 999px; color: #fff; }
-.score.high { background: var(--score-high); }
-.score.mid { background: var(--score-mid); }
-.score.low { background: var(--alert); }
-.meter { height: 8px; background: #e3ebe6; border-radius: 999px; overflow: hidden; }
-.meter span { display: block; height: 100%; border-radius: 999px; }
-.meter .high { background: var(--score-high); }
-.meter .mid { background: var(--score-mid); }
-.meter .low { background: var(--alert); }
-
-/*Detalle de la mascota*/
-.grande .foto { aspect-ratio: 16 / 10; border-radius: var(--radius); }
+.grande .foto { aspect-ratio: 4 / 3; border-radius: var(--radius); }
+.cols h2 { font-size: 1.15rem; margin-top: 1.5rem; }
 ul.motivos { margin: .25rem 0 0; padding-left: 1.1rem; }
-.ficha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .6rem; margin: .5rem 0 1rem; }
-.ficha-item { border-radius: 12px; padding: .6rem .8rem; font-size: .9rem; }
-.ficha-item strong { display: block; font-size: 1.05rem; }
-.ficha-item.mint { background: var(--mint); }
-.ficha-item.peach { background: var(--peach); }
-.ficha-item.sky { background: var(--skybg); }
-.ficha-item.lilac { background: var(--lilac); }
+.ficha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .75rem; margin: .75rem 0 1rem; }
+.ficha-item { background: var(--tone); border-radius: 10px; padding: .7rem .9rem; font-size: .88rem; color: var(--muted); }
+.ficha-item strong { display: block; margin-top: .1rem; font-size: 1.1rem; color: var(--ink); }
 
-@media (max-width: 600px) {
-  .perfil-cabecera { flex-direction: column; text-align: center; }
-}
 
-/* INICIO · ADOPTANTE */
-
-/* Perfil: cabecera con avatar  */
-.perfil-cabecera { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.25rem;
-  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow);
-  border-left: 8px solid var(--coral); }
-.avatar { width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 2.3rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--coral), var(--grape)); flex-shrink: 0; }
-.perfil-cabecera h1 { margin: 0; font-size: 1.7rem; }
-.perfil-cabecera p { margin: .15rem 0 .4rem; }
-.tag.hobby { background: var(--peach); border-color: #f5c9a6; font-size: .85rem; } /* también lo usa el refugio */
-
-/*  Compatibilidad (catálogo, detalle; también lo usa el refugio)  */
-.score { font-weight: 800; font-size: 1.1rem; padding: .1rem .7rem; border-radius: 999px; color: #fff; }
-.score.high { background: var(--score-high); }
-.score.mid { background: var(--score-mid); }
-.score.low { background: var(--alert); }
-.meter { height: 8px; background: #e3ebe6; border-radius: 999px; overflow: hidden; }
-.meter span { display: block; height: 100%; border-radius: 999px; }
-.meter .high { background: var(--score-high); }
-.meter .mid { background: var(--score-mid); }
-.meter .low { background: var(--alert); }
-
-/*Detalle de la mascota*/
-.grande .foto { aspect-ratio: 16 / 10; border-radius: var(--radius); }
-ul.motivos { margin: .25rem 0 0; padding-left: 1.1rem; }
-.ficha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .6rem; margin: .5rem 0 1rem; }
-.ficha-item { border-radius: 12px; padding: .6rem .8rem; font-size: .9rem; }
-.ficha-item strong { display: block; font-size: 1.05rem; }
-.ficha-item.mint { background: var(--mint); }
-.ficha-item.peach { background: var(--peach); }
-.ficha-item.sky { background: var(--skybg); }
-.ficha-item.lilac { background: var(--lilac); }
-
-@media (max-width: 600px) {
-  .perfil-cabecera { flex-direction: column; text-align: center; }
-}
-
-/*INICIO · ERROR */
-
-.error-page { border-top: 8px solid var(--sun); padding: 2rem 1.5rem;
-  background: linear-gradient(180deg, var(--butter), var(--paper) 45%); }
-.error-emoji { font-size: 3.5rem; line-height: 1; margin: 0; }
-.error-codigo { display: inline-block; margin: .75rem 0 .5rem; padding: .1rem .8rem; border-radius: 999px;
-  background: var(--lilac); border: 1px solid #d3c5f5; color: var(--grape); font-weight: 800; font-size: .85rem; }
-.error-acciones { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; margin: 1.25rem 0 0; }
-
-/*NICIO · REFUGIO  */
-
-/*Panel: bienvenida y acciones */
-.bienvenida { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
-  background: linear-gradient(135deg, var(--peach), var(--butter)); border: 1px solid #f5d9b8;
-  border-radius: 20px; padding: 1.5rem; margin-bottom: 1.25rem; }
-.bienvenida h1 { margin-bottom: .2rem; }
+/* ---------- 15. Refugio y administrador ---------- */
+.bienvenida { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.bienvenida h1 { margin-bottom: .25rem; }
 .bienvenida p { margin: 0; }
-.acciones { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
 
-/* Panel: tarjetas de resumen (también las usa el admin) -*/
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
-.stat { background: var(--paper); border: 1px solid var(--line); border-top: 5px solid var(--teal); border-radius: var(--radius);
-  padding: .9rem 1rem; box-shadow: var(--shadow); color: var(--ink); text-decoration: none; display: block; }
-a.stat:hover { box-shadow: var(--shadow-hover); }
-.stat .icono { font-size: 1.5rem; display: block; }
-.stat strong { display: block; font-size: 2rem; font-weight: 800; line-height: 1.1; }
-.stat.mint { background: var(--mint); border-top-color: var(--teal); }
-.stat.mint strong { color: var(--teal); }
-.stat.peach { background: var(--peach); border-top-color: var(--coral); }
-.stat.peach strong { color: var(--coral-dark); }
-.stat.sky { background: var(--skybg); border-top-color: var(--sky); }
-.stat.sky strong { color: var(--sky); }
-.stat.lilac { background: var(--lilac); border-top-color: var(--grape); }
-.stat.lilac strong { color: var(--grape); }
-.stat.butter { background: var(--butter); border-top-color: var(--sun); }
-.stat.butter strong { color: var(--score-mid); }
-.stat.red { background: var(--alert-bg); border-top-color: var(--alert); }
+/* Resumen: los números son texto grande, sin tarjetas de colores ni iconos. */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;
+  background: var(--surface); border-radius: var(--radius); padding: 1.5rem; }
+.stat { display: block; color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 600; }
+.stat strong { display: block; margin-bottom: .35rem; font-family: var(--font-title); font-size: 2.6rem; font-weight: 800; line-height: 1;
+  color: var(--pine); font-variant-numeric: tabular-nums; }
+a.stat:hover, a.stat:hover strong { color: var(--accent-dark); }
+h1 + .stats { margin-top: 1.25rem; }
 .stat.red strong { color: var(--alert); }
 
-/* Panel: atención, estados vacíos y seguimientos */
-.vacio { text-align: center; padding: 2rem 1rem; background: var(--paper); border: 2px dashed #b9cfc6; border-radius: var(--radius); }
-.vacio .emoji { font-size: 3rem; display: block; }
-.atencion { border-left: 8px solid var(--alert); }
-.todo-ok { border-left: 8px solid var(--score-high); }
+.atencion { background: var(--alert-bg); }
+.atencion h2 { color: var(--alert-ink); }
+.atencion .row p, .todo-ok p { margin: 0; }
+.panel .alert:last-child { margin-bottom: 0; }
+.todo-ok { background: var(--ok-bg); }
+.todo-ok h2 { color: var(--ok-ink); margin-bottom: .25rem; }
+
 .lista-seg { display: flex; flex-direction: column; gap: .75rem; }
-.lista-seg .item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: .9rem 1rem; box-shadow: var(--shadow); }
-.lista-seg .item.vencido { border-left: 8px solid var(--alert); }
-.lista-seg .item.entregado { border-left: 8px solid var(--score-high); }
-.lista-seg .item.pendiente { border-left: 8px solid var(--sun); }
+.lista-seg .item { background: var(--surface); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.lista-seg .item.vencido { background: var(--alert-bg); }
+.lista-seg .item.vencido .tag { background: #fff; }
+.lista-seg .item p { margin: .2rem 0; }
 
 /* Postulaciones: perfil desplegable del adoptante */
-.datos { list-style: none; margin: .5rem 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .35rem .75rem; }
-.datos li { font-size: .92rem; }
-details.detalles { background: var(--lilac); border-radius: 10px; padding: .6rem .9rem; margin: .75rem 0; }
+.mensaje-adoptante { margin: .75rem 0; }
+.datos { list-style: none; margin: .5rem 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .35rem .75rem; }
+.datos li { font-size: .95rem; }
+details.detalles { background: var(--tone); border-radius: 10px; padding: .7rem 1rem; margin: .75rem 0; }
 details.detalles summary { cursor: pointer; font-weight: 700; color: var(--pine); }
 details.detalles[open] summary { margin-bottom: .5rem; }
+details.detalles p:last-child { margin-bottom: 0; }
+.form-rechazo { margin-top: .75rem; }
+.form-rechazo label { margin: 0 0 .25rem; font-weight: 500; }
+.fila-rechazo { display: flex; gap: .6rem; align-items: center; }
+.fila-rechazo input { flex: 1; }
+
+
+/* Resumen con color (dashboard del admin y panel del refugio): clase "coloridos" + una variante por tarjeta. */
+.stats.coloridos { background: none; padding: 0; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.stats.coloridos .stat { border-radius: var(--radius); padding: 1.1rem 1.25rem; transition: transform .18s ease; }
+.stats.coloridos .stat strong { color: inherit; }
+.stats.coloridos a.stat:hover { transform: translateY(-3px); }
+.stats.coloridos .stat.mint   { background: var(--mint);   color: var(--mint-ink); }
+.stats.coloridos .stat.sky    { background: var(--sky);    color: var(--sky-ink); }
+.stats.coloridos .stat.butter { background: var(--butter); color: var(--butter-ink); }
+.stats.coloridos .stat.peach  { background: var(--peach);  color: var(--peach-ink); }
+.stats.coloridos .stat.lilac  { background: var(--lilac);  color: var(--lilac-ink); }
+.stats.coloridos .stat.aqua   { background: var(--aqua);   color: var(--aqua-ink); }
+.stats.coloridos .stat.red    { background: var(--rose);   color: var(--rose-ink); }
+
+/* Barra de estado del catálogo (dashboard) */
+.barra-estado { display: flex; gap: 3px; height: 18px; border-radius: 999px; overflow: hidden; background: var(--tone-2); }
+.barra-estado .seg { height: 100%; min-width: 0; }
+.seg.disp, .pt.disp { background: #2f9e6a; }
+.seg.proc, .pt.proc { background: #e0a21b; }
+.seg.adop, .pt.adop { background: #3b82c4; }
+.leyenda { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem 1.75rem; font-size: .95rem; }
+.leyenda .pt { display: inline-block; width: .8rem; height: .8rem; margin-right: .5rem; border-radius: 50%; }
+.panel > h2:first-child { margin-top: 0; }
+
+/* ADMIN: selector de vista (dropdown), buscador y vistas. Sin JavaScript se muestran las 3 vistas seguidas. */
+.admin-cabecera { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.admin-cabecera h1 { margin-bottom: .25rem; }
+.admin-cabecera p { margin: 0; }
+.vista-selector { position: relative; }
+.vista-boton { display: inline-flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 14rem; padding: .6rem 1.1rem;
+  background: var(--surface); color: var(--pine); border: 2px solid var(--accent); border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; }
+.vista-boton:hover { background: var(--tone); }
+.vista-boton svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s ease; }
+.vista-boton[aria-expanded="true"] svg { transform: rotate(180deg); }
+.vista-menu { position: absolute; right: 0; top: calc(100% + .4rem); z-index: 20; min-width: 100%; margin: 0; padding: .4rem; list-style: none;
+  background: var(--surface); border-radius: 14px; box-shadow: 0 12px 32px rgba(18, 51, 45, .18); }   /* taste-skill-ignore: menú flotante real */
+.vista-menu button { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; width: 100%; padding: .6rem .8rem;
+  background: none; border: 0; border-radius: 10px; font: inherit; font-weight: 600; color: var(--ink); text-align: left; cursor: pointer; }
+.vista-menu button:hover { background: var(--tone); }
+.vista-menu button[aria-current="true"] { background: var(--mint); color: var(--mint-ink); }
+.vista-menu small { font-weight: 500; font-size: .82rem; color: var(--muted); }
+.vista-menu button[aria-current="true"] small { color: var(--mint-ink); }
+.js .vista { display: none; }
+.js .vista.activa { display: block; animation: subir .35s both; }
+.vista-cabecera { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem 1rem; margin-bottom: 1rem; }
+.vista-cabecera h2 { margin: 0; }
+.buscador { position: relative; flex: 1 1 280px; max-width: 440px; }
+.buscador input { padding-left: 2.6rem; border-radius: 999px; }
+.buscador svg { position: absolute; left: .9rem; top: 50%; width: 1.1rem; height: 1.1rem; transform: translateY(-50%); pointer-events: none;
+  fill: none; stroke: var(--muted); stroke-width: 2.2; stroke-linecap: round; }
+.resultados { margin: 0 0 .6rem; color: var(--muted); font-size: .88rem; }
+.sin-resultados { margin: 0; padding: 1.5rem; text-align: center; color: var(--muted); }
+
+/* REFUGIO: seguimiento dentro de cada mascota (ventana emergente <dialog>) */
+.btn .contador { display: inline-block; min-width: 1.4em; margin-left: .45rem; padding: 0 .4em; border-radius: 999px;
+  background: var(--alert); color: #fff; font-size: .78rem; line-height: 1.5; }
+.chip-alerta { padding: .35rem .9rem; background: #fff; color: var(--rose-ink); border: 0; border-radius: 999px; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; transition: background .15s ease; }
+.chip-alerta:hover { background: var(--rose); }
+.atencion .chips { margin-top: .75rem; }
+.card .acciones .btn-seguimiento { flex: 1 1 100%; }   /* Seguimiento ocupa su fila; Editar y Eliminar van juntos debajo */
+.dialogo { width: min(560px, calc(100% - 2rem)); max-height: 85vh; padding: 0; border: 0; border-radius: 20px; background: var(--surface); color: var(--ink); }
+.dialogo::backdrop { background: rgba(18, 51, 45, .6); }
+.dialogo[open] { display: flex; flex-direction: column; animation: subir .25s both; }
+.dialogo-cab { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.5rem; background: var(--tone); }
+.dialogo-cab h2 { margin: 0; font-size: 1.3rem; }
+.dialogo-cuerpo { padding: 1.25rem 1.5rem; overflow: auto; }
+.dialogo-pie { display: flex; justify-content: flex-end; padding: 1rem 1.5rem; }
+.dialogo .lista-seg .item { background: var(--ground); }
+.dialogo .lista-seg .item.vencido { background: var(--alert-bg); }
+
+/* ---------- 16. Error y adaptación a pantallas pequeñas ---------- */
+.error-page { padding: 2.5rem 1.5rem; }
+.error-codigo { margin: 0 0 .5rem; font-family: var(--font-title); font-size: clamp(4rem, 14vw, 7rem); font-weight: 800; line-height: 1; color: var(--accent); }
+
+/* Entrada suave de la portada, el login y las tarjetas. Termina siempre visible y se apaga si el usuario lo pide. */
+@keyframes subir { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.hero h1, .hero-texto, .hero-fotos, .login-card, .grid > .card { animation: subir .6s cubic-bezier(.16, 1, .3, 1) both; }
+.hero-texto { animation-delay: .08s; }
+.hero-fotos { animation-delay: .16s; }
+
+@media (max-width: 1000px) {
+  .perfil-layout { grid-template-columns: 1fr; }
+  .perfil-lado { position: static; display: grid; grid-template-columns: auto 1fr; column-gap: 1.25rem; align-items: center; padding: 1.5rem; }
+  .perfil-lado .avatar { grid-row: span 2; width: 72px; height: 72px; font-size: 2rem; }
+  .perfil-lado h1 { margin: 0; font-size: 1.6rem; }
+  .perfil-nota { grid-column: 1 / -1; }
+}
+@media (max-width: 860px) {
+  .hero, .como ol, .cta-refugio { grid-template-columns: 1fr; }
+  .cta-refugio .btn { justify-self: start; }
+  /* Menú de navegación plegable (botón de tres rayas) */
+  .nav button.nav-toggle { display: inline-flex; }
+  .nav-links { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: .15rem; padding: .5rem 0 .25rem; }
+  .nav.abierto .nav-links { display: flex; }
+  .nav-links a, .nav-links button { padding: .7rem .9rem; border-radius: 12px; text-align: left; }
+  .nav-links form { width: 100%; }
+  .nav-links form button { width: 100%; text-align: center; }
+  .nav .who { padding: .5rem .9rem; }
+}
+@media (max-width: 720px) {
+  .cols { grid-template-columns: 1fr; }
+  .login-card { grid-template-columns: 1fr; }
+  .login-lado { padding: 1.5rem; gap: 0; }
+  .login-beneficios { display: none; }
+  .login-form { padding: 1.75rem 1.25rem; }
+  .fila-rechazo { flex-wrap: wrap; }
+  .admin-cabecera { align-items: stretch; }
+  .vista-selector, .vista-boton { width: 100%; }
+  .vista-menu { left: 0; right: 0; }
+  .buscador { max-width: none; flex-basis: 100%; }
+  .stats.coloridos { grid-template-columns: repeat(2, 1fr); }
+  .dialogo-cab, .dialogo-cuerpo, .dialogo-pie { padding-left: 1.1rem; padding-right: 1.1rem; }
+}
+@media (max-width: 600px) {
+  .container { padding: 1.25rem .9rem 3rem; }
+  .nav { padding: .6rem 1rem; }
+  .acciones .btn.lg { width: 100%; }
+  .bienvenida .acciones { width: 100%; }
+  .grid { grid-template-columns: 1fr; }
+  .panel { padding: 1.1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .card:hover { transform: none; }
+}

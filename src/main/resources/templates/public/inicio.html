@@ -4,31 +4,87 @@
 <body>
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 <main class="container">
-  <section class="hero">
-    <div class="hero-emoji" aria-hidden="true">🐶 🐱 🐰</div>
+
+  <!-- 1. HERO: el título ocupa todo el ancho; debajo, el texto con los botones y las fotos reales de las mascotas.
+       Si todavía no hay mascotas, la clase "solo" deja el texto a todo el ancho. -->
+  <section class="hero" th:classappend="${#lists.isEmpty(mascotas)} ? 'solo'">
     <h1>Encuentra la mascota que encaja con tu vida</h1>
-    <p>Cada mascota tiene necesidades distintas. Completa tu perfil y te mostramos primero
-       las que mejor se adaptan a tu casa, tu tiempo y tu presupuesto.</p>
-    <p sec:authorize="isAnonymous()">
-      <a class="btn sun lg" th:href="@{/registro}">Crear cuenta</a>
-      <a class="btn line lg" th:href="@{/login}">Ingresar</a>
-    </p>
+
+    <div class="hero-texto">
+      <p class="hero-intro">Cada mascota tiene necesidades distintas. Completa tu perfil y te mostramos primero
+         las que mejor se adaptan a tu casa, tu tiempo y tu presupuesto.</p>
+      <!-- sec:authorize muestra cada bloque solo a quien corresponde -->
+      <div class="acciones" sec:authorize="isAnonymous()">
+        <a class="btn lg" th:href="@{/registro}">Crear cuenta</a>
+        <a class="btn line lg" th:href="@{/login}">Ingresar</a>
+      </div>
+      <div class="acciones" sec:authorize="hasRole('ADOPTANTE')">
+        <a class="btn lg" th:href="@{/adoptante/catalogo}">Ver mi catálogo</a>
+      </div>
+    </div>
+
+    <!-- Solo las 3 primeras mascotas. En th:each el contador "it" permite cortar la lista sin código Java. -->
+    <div class="hero-fotos" th:if="${!#lists.isEmpty(mascotas)}">
+      <figure th:each="m, it : ${mascotas}" th:if="${it.index < 3}">
+        <div th:replace="~{fragments/layout :: foto(${m})}"></div>
+        <figcaption th:text="${m.nombre}">Nombre</figcaption>
+      </figure>
+    </div>
   </section>
 
-  <h2 style="margin-top:0">🐾 Mascotas disponibles</h2>
-  <p class="muted" th:if="${#lists.isEmpty(mascotas)}">Todavía no hay mascotas disponibles.</p>
-  <div class="grid">
-    <article class="card" th:each="m : ${mascotas}">
-      <div th:replace="~{fragments/layout :: foto(${m})}"></div>
-      <div class="body">
-        <h3 th:text="${m.nombre}">Nombre</h3>
-        <p class="muted small" th:text="${m.especie} + ', ' + ${m.edadAnios} + ' años'"></p>
-        <p th:text="${m.descripcion}"></p>
-        <div class="chips"><span class="tag" th:each="e : ${m.etiquetas}" th:text="${e.label}"></span></div>
-      </div>
-    </article>
-  </div>
-  <p class="muted" sec:authorize="isAnonymous()">Inicia sesión como adoptante para ver tu porcentaje de compatibilidad.</p>
+  <!-- 2. MASCOTAS DISPONIBLES -->
+  <section class="seccion" aria-labelledby="tituloMascotas">
+    <div class="seccion-cabecera">
+      <h2 id="tituloMascotas">Mascotas que esperan un hogar</h2>
+      <p class="muted" sec:authorize="isAnonymous()">Ingresa como adoptante para ver tu porcentaje de compatibilidad con cada una.</p>
+    </div>
+
+    <div class="vacio" th:if="${#lists.isEmpty(mascotas)}">
+      <h3>Todavía no hay mascotas disponibles</h3>
+      <p class="muted">Cuando un refugio publique una, aparecerá aquí.</p>
+    </div>
+
+    <div class="grid" th:if="${!#lists.isEmpty(mascotas)}">
+      <article class="card" th:each="m : ${mascotas}">
+        <div th:replace="~{fragments/layout :: foto(${m})}"></div>
+        <div class="body">
+          <h3 th:text="${m.nombre}">Nombre</h3>
+          <p class="muted small" th:text="${m.especie} + ' · ' + ${m.edadAnios} + ' años'"></p>
+          <p th:if="${m.descripcion != null and !#strings.isEmpty(m.descripcion)}" th:text="${m.descripcion}"></p>
+          <div class="chips"><span class="tag" th:each="e : ${m.etiquetas}" th:text="${e.label}"></span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 3. CÓMO FUNCIONA: lista ordenada real (<ol>), pero el orden se ve por la posición, sin numeración decorativa. -->
+  <section class="seccion como" aria-labelledby="tituloComo">
+    <h2 id="tituloComo">Adoptar con compromiso, de principio a fin</h2>
+    <ol>
+      <li>
+        <h3>Cuéntanos cómo vives</h3>
+        <p>Llena tu perfil con tu tiempo libre, tu vivienda y tu presupuesto. Con eso calculamos qué tan bien encajas con cada mascota.</p>
+      </li>
+      <li>
+        <h3>Postula a la que encaja</h3>
+        <p>Tu catálogo se ordena por compatibilidad y el refugio conoce tu perfil antes de decidir.</p>
+      </li>
+      <li>
+        <h3>Cuéntanos cómo crece</h3>
+        <p>Después de la adopción te pedimos una foto a los 30, 90 y 180 días para saber que tu nuevo compañero está bien.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 4. PARA REFUGIOS: solo se muestra a quien aún no inició sesión -->
+  <section class="seccion cta-refugio" sec:authorize="isAnonymous()" aria-labelledby="tituloRefugio">
+    <div>
+      <h2 id="tituloRefugio">¿Rescatas o cuidas animales?</h2>
+      <p>Registra tu refugio, publica a tus mascotas con sus necesidades y recibe postulaciones de personas que ya
+         saben lo que implica adoptar. Un administrador verifica tu RUC o registro de ONG antes de activar la cuenta.</p>
+    </div>
+    <a class="btn claro lg" th:href="@{/registro}">Registrar mi refugio</a>
+  </section>
 </main>
 <footer th:replace="~{fragments/layout :: pie}"></footer>
 </body>

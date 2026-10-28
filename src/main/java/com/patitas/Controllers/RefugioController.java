@@ -21,7 +21,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/refugio")
@@ -42,9 +45,39 @@ public class RefugioController {
         model.addAttribute("usuario", u);
         if (u.isActivo()) {
             adopciones.marcarVencidos(); // refresca las alertas al abrir el panel
+            List<Mascota> misMascotas = mascotas.findByRefugioAndActivoTrueOrderByIdDesc(u);
             List<Seguimiento> segs = seguimientos.findByPostulacionMascotaRefugioOrderByFechaLimiteAsc(u);
-            model.addAttribute("mascotas", mascotas.findByRefugioAndActivoTrueOrderByIdDesc(u));
+
+            // Contadores por estado para las tarjetas de resumen en panel.html
+            long disponibles = misMascotas.stream()
+                    .filter(m -> m.getEstado() == EnumEstadoMascota.DISPONIBLE).count();
+            long enProceso = misMascotas.stream()
+                    .filter(m -> m.getEstado() == EnumEstadoMascota.EN_PROCESO).count();
+            long adoptadas = misMascotas.stream()
+                    .filter(m -> m.getEstado() == EnumEstadoMascota.ADOPTADO).count();
+
+            // Mapas agrupados por ID de mascota para los modales de seguimiento en panel.html
+            Map<Long, List<Seguimiento>> seguimientosPorMascota = segs.stream()
+                    .collect(Collectors.groupingBy(
+                            s -> s.getPostulacion().getMascota().getId(),
+                            LinkedHashMap::new,
+                            Collectors.toList()
+                    ));
+
+            Map<Long, Long> vencidosPorMascota = segs.stream()
+                    .filter(s -> s.getEstado() == EnumEstadoSeguimiento.VENCIDO)
+                    .collect(Collectors.groupingBy(
+                            s -> s.getPostulacion().getMascota().getId(),
+                            Collectors.counting()
+                    ));
+
+            model.addAttribute("mascotas", misMascotas);
+            model.addAttribute("disponibles", disponibles);
+            model.addAttribute("enProceso", enProceso);
+            model.addAttribute("adoptadas", adoptadas);
             model.addAttribute("seguimientos", segs);
+            model.addAttribute("seguimientosPorMascota", seguimientosPorMascota);
+            model.addAttribute("vencidosPorMascota", vencidosPorMascota);
             model.addAttribute("alertas", segs.stream()
                     .filter(s -> s.getEstado() == EnumEstadoSeguimiento.VENCIDO).toList());
             model.addAttribute("pendientes",
