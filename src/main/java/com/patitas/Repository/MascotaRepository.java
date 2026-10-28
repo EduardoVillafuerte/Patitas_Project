@@ -11,6 +11,7 @@ public interface MascotaRepository extends JpaRepository<Mascota, Long> {
     List<Mascota> findByActivoTrueAndEstado(EnumEstadoMascota estado);
     List<Mascota> findByRefugioAndActivoTrueOrderByIdDesc(Usuario refugio);
     List<Mascota> findByActivoTrueOrderByIdDesc();
+    List<Mascota> findByActivoFalseOrderByIdDesc();
     long countByActivoTrue();
     long countByEstado(EnumEstadoMascota estado);
 }

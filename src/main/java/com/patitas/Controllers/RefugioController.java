@@ -127,7 +127,7 @@ public class RefugioController {
             model.addAttribute("form", MascotaForm.desde(m));
             model.addAttribute("mascotaId", id);
             model.addAttribute("mascota", m);
-            catalogos(model);
+            catalogos(model, m);
             return "refugio/mascota-form";
         } catch (BusinessException e) {
             ra.addFlashAttribute("error", e.getMessage());
@@ -141,10 +141,12 @@ public class RefugioController {
         Usuario u = usuarios.actual(auth);
         if (!u.isActivo()) return "redirect:/refugio/panel";
         try {
-            if (br.hasErrors()) {
+            Mascota actual = mascotaService.propia(u, id);
+            // Si la mascota está ADOPTADA, solo se cambia el estado; ignoramos errores de otros campos deshabilitados
+            if (actual.getEstado() != EnumEstadoMascota.ADOPTADO && br.hasErrors()) {
                 model.addAttribute("mascotaId", id);
-                model.addAttribute("mascota", mascotaService.propia(u, id));
-                catalogos(model);
+                model.addAttribute("mascota", actual);
+                catalogos(model, actual);
                 return "refugio/mascota-form";
             }
             mascotaService.actualizar(u, id, form);
@@ -218,7 +220,15 @@ public class RefugioController {
     }
 
     private void catalogos(Model model) {
+        catalogos(model, null);
+    }
+
+    private void catalogos(Model model, Mascota m) {
         model.addAttribute("todasEtiquetas", EnumEtiqueta.values());
-        model.addAttribute("estados", List.of(EnumEstadoMascota.DISPONIBLE, EnumEstadoMascota.EN_PROCESO));
+        if (m != null && m.getEstado() == EnumEstadoMascota.ADOPTADO) {
+            model.addAttribute("estados", List.of(EnumEstadoMascota.ADOPTADO, EnumEstadoMascota.DISPONIBLE, EnumEstadoMascota.EN_PROCESO));
+        } else {
+            model.addAttribute("estados", List.of(EnumEstadoMascota.DISPONIBLE, EnumEstadoMascota.EN_PROCESO));
+        }
     }
 }

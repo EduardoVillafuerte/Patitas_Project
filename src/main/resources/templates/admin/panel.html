@@ -5,7 +5,6 @@
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 <main class="container">
 
-  <!-- CABECERA + MENÚ DESPLEGABLE: elige qué vista ver. El JavaScript del final muestra una sola vista a la vez. -->
   <header class="admin-cabecera">
     <div>
       <h1>Panel de administración</h1>
@@ -29,7 +28,6 @@
   <section class="vista activa" id="vista-dashboard" data-vista-id="dashboard" aria-labelledby="tit-dashboard">
     <div class="vista-cabecera"><h2 id="tit-dashboard">Dashboard</h2></div>
 
-    <!-- Resumen con color: cada tarjeta tiene su variante (aqua, mint, sky, peach, lilac, butter, red). -->
     <div class="stats coloridos">
       <div class="stat aqua"><strong th:text="${totalMascotas}">0</strong>Mascotas en catálogo</div>
       <div class="stat mint"><strong th:text="${disponibles}">0</strong>Disponibles</div>
@@ -40,7 +38,6 @@
       <div class="stat red"><strong th:text="${seguimientosVencidos}">0</strong>Seguimientos vencidos</div>
     </div>
 
-    <!-- Estado del catálogo: barra proporcional. "enProc" nunca es negativo (por si disponibles + adoptadas superan el total). -->
     <div class="panel" th:with="resto=${totalMascotas - disponibles - adoptadas}, enProc=${resto > 0 ? resto : 0}, suma=${disponibles + adoptadas + enProc}">
       <h2>Estado del catálogo</h2>
       <p class="muted" th:if="${suma == 0}">Aún no hay mascotas registradas.</p>
@@ -130,7 +127,7 @@
   <!-- ================= VISTA 3: MASCOTAS ================= -->
   <section class="vista" id="vista-mascotas" data-vista-id="mascotas" aria-labelledby="tit-mascotas">
     <div class="vista-cabecera">
-      <h2 id="tit-mascotas">Mascotas</h2>
+      <h2 id="tit-mascotas">Mascotas activas en catálogo</h2>
       <div class="buscador">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <input type="search" data-filtro="tablaMascotas" placeholder="Buscar mascotas" aria-label="Buscar mascotas">
@@ -146,21 +143,61 @@
             <td data-label="Refugio" th:text="${m.refugio.nombre}"></td>
             <td data-label="Estado"><span th:replace="~{fragments/layout :: estado(${m.estado})}"></span></td>
             <td class="acc" data-label="">
-              <form class="inline" th:action="@{/admin/mascotas/{id}/eliminar(id=${m.id})}" method="post"
+              <form class="inline" th:if="${m.estado.name() != 'ADOPTADO'}"
+                    th:action="@{/admin/mascotas/{id}/eliminar(id=${m.id})}" method="post"
                     onsubmit="return confirm('¿Quitar del catálogo?');">
                 <button class="btn sm danger" type="submit">Eliminar</button>
               </form>
+              <span class="muted small" th:if="${m.estado.name() == 'ADOPTADO'}">Adoptada</span>
             </td>
           </tr>
         </tbody>
       </table>
       <p class="sin-resultados" data-vacio="tablaMascotas" hidden>Ninguna mascota coincide con tu búsqueda.</p>
     </div>
+
+    <!-- AUDITORÍA 1: Mascotas reingresadas / cambio de estado tras adopción -->
+    <div class="vista-cabecera" style="margin-top: 2rem;">
+      <h2>Historial de cambios de estado <span class="tag" th:text="${#lists.size(postulacionesRevocadas)}">0</span></h2>
+    </div>
+    <p class="muted" th:if="${#lists.isEmpty(postulacionesRevocadas)}">No se han registrado devoluciones ni retiros de mascotas adoptadas.</p>
+    <div class="table-wrap" th:if="${!#lists.isEmpty(postulacionesRevocadas)}">
+      <table class="tabla-apilada" id="tablaRevocadas">
+        <thead><tr><th>Mascota</th><th>Refugio</th><th>Ex-Adoptante</th><th>Estado actual</th><th>Motivo del cambio</th></tr></thead>
+        <tbody>
+          <tr th:each="p : ${postulacionesRevocadas}">
+            <td data-label="Mascota" th:text="${p.mascota.nombre}"></td>
+            <td data-label="Refugio" th:text="${p.mascota.refugio.nombre}"></td>
+            <td data-label="Ex-Adoptante" th:text="${p.adoptante.nombre}"></td>
+            <td data-label="Estado actual"><span th:replace="~{fragments/layout :: estado(${p.mascota.estado})}"></span></td>
+            <td data-label="Motivo" th:text="${p.motivoRechazo}"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- AUDITORÍA 2: Mascotas eliminadas (Soft Delete) -->
+    <div class="vista-cabecera" style="margin-top: 2rem;">
+      <h2>Mascotas eliminadas del catálogo <span class="tag" th:text="${#lists.size(mascotasEliminadas)}">0</span></h2>
+    </div>
+    <p class="muted" th:if="${#lists.isEmpty(mascotasEliminadas)}">No hay mascotas eliminadas.</p>
+    <div class="table-wrap" th:if="${!#lists.isEmpty(mascotasEliminadas)}">
+      <table class="tabla-apilada" id="tablaEliminadas">
+        <thead><tr><th>Nombre</th><th>Especie</th><th>Refugio</th><th>Último estado</th></tr></thead>
+        <tbody>
+          <tr th:each="me : ${mascotasEliminadas}">
+            <td data-label="Nombre" th:text="${me.nombre}"></td>
+            <td data-label="Especie" th:text="${me.especie}"></td>
+            <td data-label="Refugio" th:text="${me.refugio.nombre}"></td>
+            <td data-label="Último estado"><span th:replace="~{fragments/layout :: estado(${me.estado})}"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 </main>
 
 <script>
-  // 1) Marca la página como "con JavaScript": el CSS entonces muestra una sola vista a la vez.
   document.documentElement.classList.add('js');
 
   var vistas = document.querySelectorAll('.vista');
@@ -170,7 +207,6 @@
   var opciones = menu.querySelectorAll('[data-vista]');
   var nombres = { dashboard: 'Dashboard', usuarios: 'Usuarios', mascotas: 'Mascotas' };
 
-  // 2) Muestra la vista elegida y la recuerda (así, tras banear a alguien y recargar, vuelves a la misma vista).
   function mostrar(id) {
     if (!nombres[id]) id = 'dashboard';
     vistas.forEach(function (v) { v.classList.toggle('activa', v.dataset.vistaId === id); });
@@ -180,7 +216,6 @@
     history.replaceState(null, '', '#' + id);
   }
 
-  // 3) Abrir y cerrar el menú desplegable.
   function alternarMenu(abrir) {
     menu.hidden = !abrir;
     boton.setAttribute('aria-expanded', String(abrir));
@@ -192,7 +227,6 @@
   document.addEventListener('click', function (e) { if (!e.target.closest('.vista-selector')) alternarMenu(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') alternarMenu(false); });
 
-  // 4) Buscadores: ocultan las filas que no contienen lo escrito (sin distinguir mayúsculas ni tildes).
   function normalizar(texto) {
     return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
@@ -218,7 +252,6 @@
     filtrar();
   });
 
-  // 5) Vista inicial: la del enlace (#usuarios), si no la última que usaste, si no el dashboard.
   var inicial = location.hash.replace('#', '');
   if (!nombres[inicial]) { try { inicial = sessionStorage.getItem('adminVista'); } catch (e) {} }
   mostrar(inicial);
