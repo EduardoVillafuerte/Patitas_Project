@@ -81,7 +81,8 @@
           <div class="acciones">
             <button type="button" class="btn sm btn-seguimiento" th:if="${segs != null}" th:attr="data-dialogo=${'seg-' + m.id}">Seguimiento<span class="contador" th:if="${venc != null}" th:text="${venc}">1</span></button>
             <a class="btn sm line" th:href="@{/refugio/mascotas/{id}/editar(id=${m.id})}">Editar</a>
-            <form class="inline" th:action="@{/refugio/mascotas/{id}/eliminar(id=${m.id})}" method="post"
+            <form class="inline" th:if="${m.estado.name() != 'ADOPTADO'}"
+                  th:action="@{/refugio/mascotas/{id}/eliminar(id=${m.id})}" method="post"
                   onsubmit="return confirm('¿Quitar esta mascota del catálogo?');">
               <button class="btn sm danger" type="submit">Eliminar</button>
             </form>

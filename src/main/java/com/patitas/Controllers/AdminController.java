@@ -2,6 +2,7 @@ package com.patitas.Controllers;
 
 import com.patitas.exception.BusinessException;
 import com.patitas.Models.Enums.*;
+import com.patitas.Models.PostulacionAdopcion;
 import com.patitas.Repository.PostulacionRepository;
 import com.patitas.Repository.SeguimientoRepository;
 import com.patitas.Repository.UsuarioRepository;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
@@ -46,6 +49,14 @@ public class AdminController {
                 usuarios.findByRolAndEstado(EnumRol.REFUGIO, EnumEstadoCuenta.PENDIENTE_APROBACION));
         model.addAttribute("usuarios", usuarios.findByRolNotOrderByIdDesc(EnumRol.ADMIN));
         model.addAttribute("mascotas", mascotas.findByActivoTrueOrderByIdDesc());
+        model.addAttribute("mascotasEliminadas", mascotas.findByActivoFalseOrderByIdDesc());
+
+        // Historial de mascotas cuyo estado fue revertido desde ADOPTADO a DISPONIBLE/EN_PROCESO
+        List<PostulacionAdopcion> revocadas = postulaciones.findAll().stream()
+                .filter(p -> p.getMotivoRechazo() != null && p.getMotivoRechazo().startsWith("[RETIRO POR REFUGIO]"))
+                .toList();
+        model.addAttribute("postulacionesRevocadas", revocadas);
+
         return "admin/panel";
     }
 

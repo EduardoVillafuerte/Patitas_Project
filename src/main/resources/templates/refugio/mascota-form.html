@@ -1,122 +1,127 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Mascota')}"></head>
+<head th:replace="~{fragments/layout :: head(${mascotaId == null ? 'Nueva Mascota' : 'Editar Mascota'})}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: nav}"></nav>
-<main class="container medium">
-  <h1 th:text="${mascotaId == null} ? 'Registrar mascota' : 'Editar mascota'">Mascota</h1>
-  <p class="muted">Los campos con <span class="req">*</span> son obligatorios. Mientras más datos reales pongas, mejor funciona la compatibilidad.</p>
+<main class="container narrow">
+  <div class="auth-cabecera">
+    <h1 th:text="${mascotaId == null ? 'Registrar nueva mascota' : 'Editar ficha de la mascota'}"></h1>
+    <p th:if="${mascotaId == null}" class="muted">Ingresa los datos para publicarla en el catálogo.</p>
+  </div>
+
   <div th:replace="~{fragments/layout :: mensajes}"></div>
 
-  <!-- enctype="multipart/form-data" es OBLIGATORIO para poder subir la foto. -->
-  <form class="panel" enctype="multipart/form-data" th:object="${form}" method="post"
-        th:action="${mascotaId == null} ? @{/refugio/mascotas} : @{/refugio/mascotas/{id}(id=${mascotaId})}">
+  <form class="panel" th:action="@{${mascotaId == null ? '/refugio/mascotas' : '/refugio/mascotas/' + mascotaId}}" 
+        th:object="${form}" method="post" enctype="multipart/form-data">
+    
+    <!-- ========================================================================= -->
+    <!-- CASO A: MASCOTA ADOPTADA (Se oculta todo, solo se permite cambiar estado) -->
+    <!-- ========================================================================= -->
+    <th:block th:if="${mascota != null and mascota.estado.name() == 'ADOPTADO'}">
+      <div class="alert warn">
+        <strong>Mascota adoptada</strong><br>
+        Por motivos de integridad de datos, la ficha de una mascota adoptada está bloqueada. <br>
+        Solo debes usar este formulario para cambiar su <strong>Estado</strong> si necesitas devolverla al catálogo por falta de evidencias o retiro por maltrato.
+      </div>
+      
+      <label for="estadoAdoptado">Estado de la mascota</label>
+      <select id="estadoAdoptado" th:field="*{estado}">
+        <option th:each="e : ${estados}" th:value="${e}" th:text="${e.name()}"></option>
+      </select>
+      <p class="hint">Si seleccionas "Disponible" o "En Proceso", la adopción actual se cancelará y los seguimientos se borrarán.</p>
 
-    <fieldset>
-      <legend>Datos básicos</legend>
+      <!-- Campos ocultos para engañar a la validación @Valid del backend y que no lance errores -->
+      <input type="hidden" th:field="*{nombre}" />
+      <input type="hidden" th:field="*{especie}" />
+      <input type="hidden" th:field="*{edadAnios}" />
+      <input type="hidden" th:field="*{nivelEnergia}" />
+      <input type="hidden" th:field="*{sociabilidad}" />
+      <input type="hidden" th:field="*{presupuestoMinimo}" />
+    </th:block>
 
-      <label for="nombre">Nombre <span class="req">*</span></label>
-      <input id="nombre" type="text" th:field="*{nombre}" th:errorclass="invalid" required maxlength="60">
-      <div class="field-error" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
-
-      <div class="cols">
-        <div>
+    <!-- ========================================================================= -->
+    <!-- CASO B: CREACIÓN O EDICIÓN NORMAL DE MASCOTA NO ADOPTADA                  -->
+    <!-- ========================================================================= -->
+    <th:block th:if="${mascota == null or mascota.estado.name() != 'ADOPTADO'}">
+      
+      <div class="row-campos">
+        <div class="col">
+          <label for="nombre">Nombre <span class="req">*</span></label>
+          <!-- Si se está editando (mascotaId != null), el input es de solo lectura y grisáceo -->
+          <input id="nombre" type="text" th:field="*{nombre}" th:errorclass="invalid" required maxlength="60"
+                 th:readonly="${mascotaId != null}" th:style="${mascotaId != null ? 'background:#f0f0f0;pointer-events:none;' : ''}">
+          <div class="field-error" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+        </div>
+        <div class="col">
           <label for="especie">Especie <span class="req">*</span></label>
-          <input id="especie" type="text" th:field="*{especie}" th:errorclass="invalid" required maxlength="40"
-                 placeholder="Perro, gato..." list="especies">
-          <!-- datalist: sugiere especies comunes pero deja escribir otra (así evitamos "perro", "Perro " y "PERRO" distintos). -->
-          <datalist id="especies"><option value="Perro"></option><option value="Gato"></option><option value="Conejo"></option></datalist>
+          <!-- Si se está editando, no se puede cambiar la especie -->
+          <input id="especie" type="text" th:field="*{especie}" th:errorclass="invalid" required maxlength="40" placeholder="Ej: Perro, Gato"
+                 th:readonly="${mascotaId != null}" th:style="${mascotaId != null ? 'background:#f0f0f0;pointer-events:none;' : ''}">
           <div class="field-error" th:if="${#fields.hasErrors('especie')}" th:errors="*{especie}"></div>
         </div>
-        <div>
-          <label for="edad">Edad (años) <span class="req">*</span></label>
-          <input id="edad" type="number" min="0" max="40" th:field="*{edadAnios}" th:errorclass="invalid" required>
+      </div>
+      <p class="hint" th:if="${mascotaId != null}">El nombre y la especie base no se pueden modificar tras el registro.</p>
+
+      <div class="row-campos">
+        <div class="col">
+          <label for="edadAnios">Edad (años) <span class="req">*</span></label>
+          <input id="edadAnios" type="number" th:field="*{edadAnios}" th:errorclass="invalid" required min="0" max="40">
           <div class="field-error" th:if="${#fields.hasErrors('edadAnios')}" th:errors="*{edadAnios}"></div>
+        </div>
+        <div class="col">
+          <label for="presupuestoMinimo">Presupuesto mínimo mensual (USD) <span class="req">*</span></label>
+          <input id="presupuestoMinimo" type="number" step="0.01" th:field="*{presupuestoMinimo}" th:errorclass="invalid" required min="0">
+          <div class="field-error" th:if="${#fields.hasErrors('presupuestoMinimo')}" th:errors="*{presupuestoMinimo}"></div>
         </div>
       </div>
 
-      <label for="descripcion">Descripción</label>
-      <textarea id="descripcion" th:field="*{descripcion}" th:errorclass="invalid" maxlength="1000"
-                placeholder="Carácter, con quién se lleva bien, qué le gusta..."></textarea>
-      <div class="field-error" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Carácter y cuidados</legend>
-
-      <div class="cols">
-        <div>
-          <label for="energia">Nivel de energía <span class="req">*</span></label>
-          <select id="energia" th:field="*{nivelEnergia}" th:errorclass="invalid" required>
-            <option value="1">1 · Muy tranquilo</option>
-            <option value="2">2 · Tranquilo</option>
-            <option value="3">3 · Moderado</option>
-            <option value="4">4 · Activo</option>
-            <option value="5">5 · Muy activo</option>
-          </select>
+      <div class="row-campos">
+        <div class="col">
+          <label for="nivelEnergia">Nivel de Energía (1 a 5) <span class="req">*</span></label>
+          <input id="nivelEnergia" type="number" th:field="*{nivelEnergia}" th:errorclass="invalid" required min="1" max="5">
           <div class="field-error" th:if="${#fields.hasErrors('nivelEnergia')}" th:errors="*{nivelEnergia}"></div>
         </div>
-        <div>
-          <label for="sociabilidad">Sociabilidad <span class="req">*</span></label>
-          <select id="sociabilidad" th:field="*{sociabilidad}" th:errorclass="invalid" required>
-            <option value="1">1 · Muy reservado</option>
-            <option value="2">2 · Reservado</option>
-            <option value="3">3 · Equilibrado</option>
-            <option value="4">4 · Sociable</option>
-            <option value="5">5 · Muy sociable</option>
-          </select>
+        <div class="col">
+          <label for="sociabilidad">Sociabilidad (1 a 5) <span class="req">*</span></label>
+          <input id="sociabilidad" type="number" th:field="*{sociabilidad}" th:errorclass="invalid" required min="1" max="5">
           <div class="field-error" th:if="${#fields.hasErrors('sociabilidad')}" th:errors="*{sociabilidad}"></div>
         </div>
       </div>
 
-      <label for="presupuesto">Presupuesto mensual mínimo recomendado (USD) <span class="req">*</span></label>
-      <input id="presupuesto" type="number" min="0" step="1" th:field="*{presupuestoMinimo}" th:errorclass="invalid" required
-             aria-describedby="ayudaPresupuesto">
-      <p class="hint" id="ayudaPresupuesto">Cuánto cuesta al mes alimentarla y cuidarla. Se compara con el presupuesto del adoptante.</p>
-      <div class="field-error" th:if="${#fields.hasErrors('presupuestoMinimo')}" th:errors="*{presupuestoMinimo}"></div>
+      <label for="estado">Estado en catálogo</label>
+      <select id="estado" th:field="*{estado}">
+        <option th:each="e : ${estados}" th:value="${e}" th:text="${e.name()}"></option>
+      </select>
 
-      <!-- Antes era una etiqueta de texto sin campo asociado; ahora es un grupo con nombre accesible. -->
-      <p class="label-grupo" id="tituloEtiquetas">Etiquetas de cuidado</p>
-      <div class="checks" role="group" aria-labelledby="tituloEtiquetas">
-        <label class="check" th:each="e : ${todasEtiquetas}">
-          <input type="checkbox" th:field="*{etiquetas}" th:value="${e}"> <span th:text="${e.label}"></span>
+      <label>Etiquetas de Necesidades</label>
+      <div class="chips-checkbox">
+        <label th:each="etq : ${todasEtiquetas}">
+          <input type="checkbox" th:field="*{etiquetas}" th:value="${etq}">
+          <span th:text="${etq.name()}"></span>
         </label>
       </div>
-    </fieldset>
 
-    <fieldset>
-      <legend>Salud</legend>
-      <label class="check"><input type="checkbox" th:field="*{vacunado}"> Vacunas al día</label>
-      <label class="check"><input type="checkbox" th:field="*{esterilizado}"> Esterilizado</label>
+      <div class="chips-checkbox" style="margin-top: 1rem;">
+        <label><input type="checkbox" th:field="*{vacunado}"><span>Vacunado</span></label>
+        <label><input type="checkbox" th:field="*{esterilizado}"><span>Esterilizado</span></label>
+      </div>
 
-      <label for="ficha">Ficha médica</label>
-      <textarea id="ficha" th:field="*{fichaMedica}" th:errorclass="invalid" maxlength="2000"
-                placeholder="Vacunas, esterilización, tratamientos..."></textarea>
-      <div class="field-error" th:if="${#fields.hasErrors('fichaMedica')}" th:errors="*{fichaMedica}"></div>
-    </fieldset>
+      <label for="descripcion">Descripción</label>
+      <textarea id="descripcion" th:field="*{descripcion}" th:errorclass="invalid" rows="3"></textarea>
+      <div class="field-error" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
 
-    <!-- Solo al editar, y nunca si ya fue adoptada ("Adoptado" se alcanza completando una adopción). -->
-    <fieldset th:if="${mascotaId != null and mascota.estado.name() != 'ADOPTADO'}">
-      <legend>Publicación</legend>
-      <label for="estado">Estado</label>
-      <select id="estado" th:field="*{estado}">
-        <option th:each="e : ${estados}" th:value="${e}"
-                th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(e, '_', ' ')))}"></option>
-      </select>
-    </fieldset>
+      <label for="fichaMedica">Ficha Médica (opcional)</label>
+      <textarea id="fichaMedica" th:field="*{fichaMedica}" th:errorclass="invalid" rows="2"></textarea>
 
-    <fieldset>
-      <legend>Foto</legend>
-      <label for="imagen">Imagen de la mascota</label>
-      <input id="imagen" type="file" name="imagen" accept="image/*" aria-describedby="ayudaFoto">
-      <p class="hint" id="ayudaFoto">JPG o PNG, máximo 3 MB.
-        <span th:if="${mascotaId != null}">Si no eliges una foto nueva, se conserva la actual.</span></p>
-    </fieldset>
+      <label for="imagen">Fotografía (Solo PNG/JPG)</label>
+      <input type="file" id="imagen" name="imagen" accept="image/*">
+      <p class="hint" th:if="${mascotaId != null}">Sube una foto solo si deseas reemplazar la actual.</p>
+    </th:block>
 
-    <p class="acciones-form">
-      <button class="btn lg" type="submit" th:text="${mascotaId == null} ? 'Registrar mascota' : 'Guardar cambios'">Guardar</button>
-      <a class="btn line lg" th:href="@{/refugio/panel}">Cancelar</a>
-    </p>
+    <div style="margin-top: 2rem;">
+      <button class="btn lg" type="submit">Guardar mascota</button>
+      <a class="btn lg line" th:href="@{/refugio/panel}" style="margin-left: 10px;">Cancelar</a>
+    </div>
   </form>
 </main>
 <footer th:replace="~{fragments/layout :: pie}"></footer>
