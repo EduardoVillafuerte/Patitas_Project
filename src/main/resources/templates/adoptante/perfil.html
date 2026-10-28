@@ -3,34 +3,37 @@
 <head th:replace="~{fragments/layout :: head('Mi perfil')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: nav}"></nav>
-<main class="container medium">
+<main class="container amplio">
+  <div class="perfil-layout">
 
-  <!-- CABECERA: así te verá el refugio. Se llena con lo que ya guardaste. -->
-  <section class="perfil-cabecera">
-    <div class="avatar" aria-hidden="true" th:text="${usuario.inicial}">A</div>
-    <div>
+    <!-- TARJETA LATERAL: así te ve el refugio. Se llena con lo que ya guardaste. -->
+    <aside class="perfil-lado">
+      <div class="avatar" aria-hidden="true" th:text="${usuario.inicial}">A</div>
       <h1 th:text="${usuario.nombre}">Tu nombre</h1>
-      <p class="muted" th:if="${usuario.edad != null or usuario.ciudad != null}">
-        <span th:if="${usuario.edad != null}" th:text="'🎂 ' + ${usuario.edad} + ' años'"></span>
+      <p class="perfil-meta" th:if="${usuario.edad != null or usuario.ciudad != null}">
+        <span th:if="${usuario.edad != null}" th:text="${usuario.edad} + ' años'"></span>
         <span th:if="${usuario.edad != null and usuario.ciudad != null}"> · </span>
-        <span th:if="${usuario.ciudad != null}" th:text="'📍 ' + ${usuario.ciudad}"></span>
+        <span th:if="${usuario.ciudad != null}" th:text="${usuario.ciudad}"></span>
       </p>
-      <p class="muted" th:unless="${usuario.edad != null or usuario.ciudad != null}">
-        ¡Cuéntanos quién eres! Los refugios prefieren dar mascotas a personas que conocen un poco. 💚
+      <p class="perfil-meta" th:unless="${usuario.edad != null or usuario.ciudad != null}">
+        ¡Cuéntanos quién eres! Los refugios prefieren dar mascotas a personas que conocen un poco.
       </p>
-      <div class="chips" th:if="${!#lists.isEmpty(usuario.hobbiesLista)}">
-        <span class="tag hobby" th:each="h : ${usuario.hobbiesLista}" th:text="${h}"></span>
+      <div class="perfil-nota">
+        <h2>¿Para qué sirve tu perfil?</h2>
+        <p>Con tus respuestas de hogar y estilo de vida calculamos qué tan bien encajas con cada mascota y ordenamos tu catálogo de mayor a menor compatibilidad.</p>
+        <p>Los refugios ven tu perfil cuando postulas a una de sus mascotas.</p>
       </div>
-    </div>
-  </section>
+    </aside>
 
-  <div th:replace="~{fragments/layout :: mensajes}"></div>
-  <p class="muted">Los campos con <span class="req">*</span> son obligatorios. Tu estilo de vida se usa para calcular qué tan bien encajas con cada mascota.</p>
+    <!-- FORMULARIO: dos tarjetas (Sobre ti / Tu hogar). En pantalla ancha van lado a lado. -->
+    <div class="perfil-principal">
+      <div th:replace="~{fragments/layout :: mensajes}"></div>
+      <p class="muted">Los campos con <span class="req">*</span> son obligatorios.</p>
 
-  <form class="panel" th:action="@{/adoptante/perfil}" th:object="${form}" method="post">
+      <form class="perfil-form" th:action="@{/adoptante/perfil}" th:object="${form}" method="post">
 
-    <fieldset>
-      <legend>🙋 Sobre ti</legend>
+    <fieldset class="panel">
+      <legend>Sobre ti</legend>
 
       <label for="nombre">Nombre completo <span class="req">*</span></label>
       <input id="nombre" type="text" th:field="*{nombre}" th:errorclass="invalid" required maxlength="80" autocomplete="name">
@@ -68,30 +71,11 @@
         </div>
       </div>
 
-      <label for="hobbies">Tus hobbies</label>
-      <input id="hobbies" type="text" th:field="*{hobbies}" th:errorclass="invalid" maxlength="200"
-             placeholder="Senderismo, cocinar, videojuegos..." aria-describedby="ayudaHobbies">
-      <p class="hint" id="ayudaHobbies">Sepáralos con comas o toca una sugerencia:</p>
-      <div class="chips" role="group" aria-label="Sugerencias de hobbies">
-        <button type="button" class="chip-btn" data-hobby="Senderismo">🥾 Senderismo</button>
-        <button type="button" class="chip-btn" data-hobby="Correr">🏃 Correr</button>
-        <button type="button" class="chip-btn" data-hobby="Leer">📚 Leer</button>
-        <button type="button" class="chip-btn" data-hobby="Cocinar">🍳 Cocinar</button>
-        <button type="button" class="chip-btn" data-hobby="Videojuegos">🎮 Videojuegos</button>
-        <button type="button" class="chip-btn" data-hobby="Música">🎵 Música</button>
-        <button type="button" class="chip-btn" data-hobby="Viajar">✈️ Viajar</button>
-        <button type="button" class="chip-btn" data-hobby="Arte">🎨 Arte</button>
-      </div>
-      <div class="field-error" th:if="${#fields.hasErrors('hobbies')}" th:errors="*{hobbies}"></div>
-
-      <label for="sobreMi">Cuéntale al refugio sobre ti</label>
-      <textarea id="sobreMi" th:field="*{sobreMi}" th:errorclass="invalid" maxlength="500"
-                placeholder="Cómo es tu día a día, por qué quieres adoptar, qué tipo de compañero buscas..."></textarea>
-      <div class="field-error" th:if="${#fields.hasErrors('sobreMi')}" th:errors="*{sobreMi}"></div>
     </fieldset>
 
-    <fieldset>
-      <legend>🏡 Tu hogar y estilo de vida</legend>
+
+    <fieldset class="panel">
+      <legend>Tu hogar y estilo de vida</legend>
 
       <label for="horas">Horas al día que estarías fuera de casa <span class="req">*</span></label>
       <input id="horas" type="number" min="0" max="24" th:field="*{horasFueraCasa}" th:errorclass="invalid" required aria-describedby="ayudaHoras">
@@ -119,23 +103,28 @@
       <label class="check"><input type="checkbox" th:field="*{tieneNinos}"> Hay niños en casa</label>
     </fieldset>
 
-    <p style="margin-top:1.5rem"><button class="btn sun lg" type="submit">💾 Guardar mi perfil</button></p>
+    <!-- Tercera tarjeta, a todo lo ancho: aquí cuentas quién eres para que el refugio te conozca. -->
+    <fieldset class="panel panel-ancho">
+      <legend>Para que te conozcan</legend>
+
+      <label for="hobbies">Tus hobbies</label>
+      <input id="hobbies" type="text" th:field="*{hobbies}" th:errorclass="invalid" maxlength="200"
+             placeholder="Senderismo, cocinar, videojuegos..." aria-describedby="ayudaHobbies">
+      <p class="hint" id="ayudaHobbies">Sepáralos con comas.</p>
+      <div class="field-error" th:if="${#fields.hasErrors('hobbies')}" th:errors="*{hobbies}"></div>
+
+      <label for="sobreMi">Cuéntale al refugio sobre ti</label>
+      <textarea id="sobreMi" th:field="*{sobreMi}" th:errorclass="invalid" maxlength="500"
+                placeholder="Cómo es tu día a día, por qué quieres adoptar, qué tipo de compañero buscas..."></textarea>
+      <div class="field-error" th:if="${#fields.hasErrors('sobreMi')}" th:errors="*{sobreMi}"></div>
+    </fieldset>
+
+    <!-- En teléfono esta barra queda fija abajo, para guardar sin volver al final del formulario. -->
+    <div class="barra-guardar"><button class="btn lg" type="submit">Guardar mi perfil</button></div>
   </form>
+    </div>
+  </div>
 </main>
-<script>
-  // Al tocar una sugerencia, se agrega el hobby al campo (sin repetirlo).
-  const campo = document.getElementById('hobbies');
-  document.querySelectorAll('.chip-btn').forEach(function (boton) {
-    boton.addEventListener('click', function () {
-      const hobby = boton.dataset.hobby;
-      const actuales = campo.value.split(',').map(function (h) { return h.trim().toLowerCase(); });
-      if (actuales.indexOf(hobby.toLowerCase()) === -1) {
-        campo.value = campo.value.trim() === '' ? hobby : campo.value.replace(/[,\s]+$/, '') + ', ' + hobby;
-      }
-      campo.focus();
-    });
-  });
-</script>
 <footer th:replace="~{fragments/layout :: pie}"></footer>
 </body>
 </html>

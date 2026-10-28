@@ -4,26 +4,30 @@
 <body>
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 <main class="container">
-  <h1>💌 Mis postulaciones</h1>
+  <h1>Mis postulaciones</h1>
   <div th:replace="~{fragments/layout :: mensajes}"></div>
 
-  <p class="muted" th:if="${#lists.isEmpty(postulaciones)}">Aún no has postulado. <a th:href="@{/adoptante/catalogo}">Ver mascotas</a></p>
+  <div class="vacio" th:if="${#lists.isEmpty(postulaciones)}">
+    <h2>Aún no has postulado</h2>
+    <p class="muted">Cuando postules a una mascota, aquí verás en qué estado va tu solicitud.</p>
+    <a class="btn" th:href="@{/adoptante/catalogo}">Ver mascotas para mí</a>
+  </div>
   <div class="table-wrap" th:if="${!#lists.isEmpty(postulaciones)}">
-    <table>
-      <thead><tr><th>Mascota</th><th>Fecha</th><th>Compatibilidad</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <table class="tabla-apilada">
+      <thead><tr><th>Mascota</th><th>Fecha</th><th class="num">Compatibilidad</th><th>Estado</th><th>Motivo del rechazo</th></tr></thead>
       <tbody>
         <tr th:each="p : ${postulaciones}">
-          <td th:text="${p.mascota.nombre}"></td>
-          <td th:text="${#temporals.format(p.fecha, 'dd/MM/yyyy')}"></td>
-          <td th:text="${p.scoreAlPostular} + '%'"></td>
-          <td><span th:replace="~{fragments/layout :: estado(${p.estado})}"></span></td>
-          <td class="small" th:text="${p.motivoRechazo}"></td>
+          <td data-label="Mascota" th:text="${p.mascota.nombre}"></td>
+          <td data-label="Fecha" th:text="${#temporals.format(p.fecha, 'dd/MM/yyyy')}"></td>
+          <td class="num" data-label="Compatibilidad" th:text="${p.scoreAlPostular} + '%'"></td>
+          <td data-label="Estado"><span th:replace="~{fragments/layout :: estado(${p.estado})}"></span></td>
+          <td class="small" data-label="Motivo" th:text="${p.motivoRechazo != null and !#strings.isEmpty(p.motivoRechazo)} ? ${p.motivoRechazo} : '—'"></td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <h2>📸 Seguimiento post-adopción</h2>
+  <h2>Seguimiento post-adopción</h2>
   <p class="muted" th:if="${#lists.isEmpty(seguimientos)}">Cuando una adopción se complete, aquí aparecerán las entregas de evidencia a los 30, 90 y 180 días.</p>
   <div class="panel" th:each="s : ${seguimientos}">
     <div class="row">
@@ -33,7 +37,7 @@
       </div>
       <span th:replace="~{fragments/layout :: estado(${s.estado})}"></span>
     </div>
-    <div class="alert err" th:if="${s.estado.name() == 'VENCIDO'}" style="margin-top:.75rem">
+    <div class="alert err" th:if="${s.estado.name() == 'VENCIDO'}">
       Pasó la fecha límite. Sube tu evidencia cuanto antes; el refugio ya fue alertado.
     </div>
     <form th:if="${s.estado.name() != 'ENTREGADO'}" th:action="@{/adoptante/seguimientos/{id}/evidencia(id=${s.id})}"

@@ -8,8 +8,9 @@
   Dentro de esta página existe la variable ${status} con el código HTTP.
 -->
 <main class="container narrow">
-  <div class="panel centrado">
-    <p style="font-size:3rem;margin:0" aria-hidden="true">🐾</p>
+  <div class="panel centrado error-page">
+    <!-- Muestra el código HTTP en grande (403, 404...). El "?:" pone "Ups" si por alguna razón no llega el código. -->
+    <p class="error-codigo" aria-hidden="true" th:text="${status} ?: 'Ups'">500</p>
 
     <th:block th:if="${status == 403}">
       <h1>No tienes permiso para ver esto</h1>
