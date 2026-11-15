@@ -7,6 +7,7 @@ import com.patitas.Repository.PostulacionRepository;
 import com.patitas.Repository.SeguimientoRepository;
 import com.patitas.Repository.UsuarioRepository;
 import com.patitas.Repository.MascotaRepository;
+import com.patitas.Services.EstadisticasService;
 import com.patitas.Services.MascotaService;
 import com.patitas.Services.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class AdminController {
     private final MascotaService mascotaService;
     private final PostulacionRepository postulaciones;
     private final SeguimientoRepository seguimientos;
+    private final EstadisticasService estadisticas;
 
     @GetMapping("/panel")
     public String panel(Model model) {
@@ -43,6 +45,11 @@ public class AdminController {
         model.addAttribute("refugiosActivos", usuarios.countByRolAndEstado(EnumRol.REFUGIO, EnumEstadoCuenta.ACTIVO));
         model.addAttribute("postulacionesPendientes", postulaciones.countByEstado(EnumEstadoPostulacion.PENDIENTE));
         model.addAttribute("seguimientosVencidos", seguimientos.countByEstado(EnumEstadoSeguimiento.VENCIDO));
+
+        // Gráficos (Chart.js): null = cifras de toda la plataforma
+        model.addAttribute("grafMascotas", estadisticas.mascotasPorEstado(null));
+        model.addAttribute("grafMeses", estadisticas.adopcionesPorMes(null));
+        model.addAttribute("grafPostulaciones", estadisticas.postulacionesPorEstado(null));
 
         // Listas de gestión
         model.addAttribute("refugiosPendientes",

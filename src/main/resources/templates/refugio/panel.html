@@ -34,6 +34,31 @@
       <a class="stat peach" th:href="@{/refugio/postulaciones}"><strong th:text="${pendientes}">0</strong>Postulaciones por revisar</a>
     </div>
 
+    <!-- GRÁFICOS (Chart.js) -->
+    <div class="panel">
+      <h2>Tu refugio en gráficos</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem">
+      <figure style="margin:0">
+        <figcaption style="font-weight:600;margin-bottom:.5rem">Mis mascotas por estado</figcaption>
+        <p class="muted small" th:if="${grafMascotas.total == 0}">Aún no hay datos para mostrar.</p>
+        <div style="position:relative;height:240px" th:if="${grafMascotas.total > 0}">
+          <canvas id="grafMascotas" role="img" aria-label="Gráfico de pastel de mis mascotas por estado"
+                  th:data-etiquetas="${#strings.listJoin(grafMascotas.etiquetas, '|')}"
+                  th:data-valores="${#strings.listJoin(grafMascotas.valores, '|')}"></canvas>
+        </div>
+      </figure>
+      <figure style="margin:0">
+        <figcaption style="font-weight:600;margin-bottom:.5rem">Mis adopciones por mes</figcaption>
+        <p class="muted small" th:if="${grafMeses.total == 0}">Aún no hay datos para mostrar.</p>
+        <div style="position:relative;height:240px" th:if="${grafMeses.total > 0}">
+          <canvas id="grafMeses" role="img" aria-label="Gráfico de barras de mis adopciones por mes"
+                  th:data-etiquetas="${#strings.listJoin(grafMeses.etiquetas, '|')}"
+                  th:data-valores="${#strings.listJoin(grafMeses.valores, '|')}"></canvas>
+        </div>
+      </figure>
+      </div>
+    </div>
+
     <!-- QUÉ NECESITA TU ATENCIÓN -->
     <section class="panel atencion" th:if="${!#lists.isEmpty(alertas)}">
       <h2>Seguimientos vencidos</h2>
@@ -126,6 +151,35 @@
   document.querySelectorAll('dialog.dialogo').forEach(function (ventana) {
     ventana.addEventListener('click', function (e) { if (e.target === ventana) ventana.close(); });
   });
+</script>
+<!-- Gráficos con Chart.js (librería gratuita por CDN). Los datos llegan desde el controlador en atributos data-. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+  (function () {
+    if (typeof Chart === 'undefined') return; // sin internet no se dibuja, pero la página sigue funcionando
+    function leer(el) {
+      return { etiquetas: el.dataset.etiquetas.split('|'), valores: el.dataset.valores.split('|').map(Number) };
+    }
+    function pastel(id, colores) {
+      var el = document.getElementById(id); if (!el) return;
+      var d = leer(el);
+      new Chart(el, { type: 'pie',
+        data: { labels: d.etiquetas, datasets: [{ data: d.valores, backgroundColor: colores }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+    }
+    function barras(id, color, etiqueta) {
+      var el = document.getElementById(id); if (!el) return;
+      var d = leer(el);
+      new Chart(el, { type: 'bar',
+        data: { labels: d.etiquetas, datasets: [{ label: etiqueta, data: d.valores, backgroundColor: color, borderRadius: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } });
+    }
+    pastel('grafMascotas', ['#2f9e8f', '#f2b84b', '#4a90d9']);
+    barras('grafMeses', '#2f9e8f', 'Adopciones');
+    pastel('grafPostulaciones', ['#f2b84b', '#2f9e8f', '#e5736b', '#4a90d9']);
+  })();
 </script>
 <footer th:replace="~{fragments/layout :: pie}"></footer>
 </body>

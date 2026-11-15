@@ -26,6 +26,7 @@ public class AdopcionService {
     private final MascotaRepository mascotas;
     private final SeguimientoRepository seguimientos;
     private final CompatibilidadService compatibilidad;
+    private final NotificacionService notificaciones;
 
     // bloqueo por lista negra
     @Transactional
@@ -56,7 +57,9 @@ public class AdopcionService {
         p.setMascota(m);
         p.setMensaje(mensaje);
         p.setScoreAlPostular(compatibilidad.evaluar(adoptante, m).getScore());
-        return postulaciones.save(p);
+        PostulacionAdopcion guardada = postulaciones.save(p);
+        notificaciones.refugioNuevaPostulacion(guardada);
+        return guardada;
     }
 
     // REFUGIO: gestionar postulaciones
@@ -81,8 +84,10 @@ public class AdopcionService {
             if (!otra.getId().equals(p.getId())) {
                 otra.setEstado(EnumEstadoPostulacion.RECHAZADA);
                 otra.setMotivoRechazo("Se aprobó otra postulación para esta mascota.");
+                notificaciones.adoptantePostulacionRechazada(otra);
             }
         }
+        notificaciones.adoptantePostulacionAprobada(p);
     }
 
     @Transactional
@@ -96,6 +101,7 @@ public class AdopcionService {
         }
         p.setEstado(EnumEstadoPostulacion.RECHAZADA);
         p.setMotivoRechazo(motivo == null || motivo.isBlank() ? "Sin motivo indicado" : motivo.trim());
+        notificaciones.adoptantePostulacionRechazada(p);
     }
 
     /*Cierra la adopción y genera automáticamente el cronograma de seguimiento 30, 90 y 180 días).*/
@@ -117,6 +123,7 @@ public class AdopcionService {
             s.setFechaLimite(hoy.plusDays(dias));
             p.getSeguimientos().add(s);
         }
+        notificaciones.adopcionCompletada(p);
     }
 
     // ADOPTANTE: subir evidencia de seguimiento
@@ -155,7 +162,10 @@ public class AdopcionService {
     public int marcarVencidos() {
         List<Seguimiento> vencidos = seguimientos
                 .findByEstadoAndFechaLimiteBefore(EnumEstadoSeguimiento.PENDIENTE, LocalDate.now());
-        vencidos.forEach(s -> s.setEstado(EnumEstadoSeguimiento.VENCIDO));
+        vencidos.forEach(s -> {
+            s.setEstado(EnumEstadoSeguimiento.VENCIDO);
+            notificaciones.seguimientoVencido(s); // solo se avisa una vez: al pasar de PENDIENTE a VENCIDO
+        });
         return vencidos.size();
     }
 

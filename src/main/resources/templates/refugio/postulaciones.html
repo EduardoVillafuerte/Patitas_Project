@@ -65,6 +65,9 @@
         <button class="btn sm" type="submit">Completar adopción</button>
       </form>
     </div>
+    <div class="acciones" th:if="${p.estado.name() == 'COMPLETADA'}">
+      <a class="btn sm" th:href="@{/refugio/postulaciones/{id}/contrato(id=${p.id})}" target="_blank" rel="noopener">Descargar contrato (PDF)</a>
+    </div>
     <!-- Pide confirmación antes de rechazar (QA: evita rechazos por un clic accidental). -->
     <form class="form-rechazo" th:if="${p.estado.name() == 'PENDIENTE' or p.estado.name() == 'APROBADA'}"
           th:action="@{/refugio/postulaciones/{id}/rechazar(id=${p.id})}" method="post"

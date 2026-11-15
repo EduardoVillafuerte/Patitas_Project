@@ -10,9 +10,14 @@ import com.patitas.Repository.PostulacionRepository;
 import com.patitas.Repository.SeguimientoRepository;
 import com.patitas.Services.AdopcionService;
 import com.patitas.Services.CompatibilidadService;
+import com.patitas.Services.ContratoService;
 import com.patitas.Services.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,6 +41,7 @@ public class AdoptanteController {
     private final SeguimientoRepository seguimientos;
     private final CompatibilidadService compatibilidad;
     private final AdopcionService adopciones;
+    private final ContratoService contratos;
 
     //Perfil de estilo de vida usuario
     @GetMapping("/perfil")
@@ -150,5 +156,20 @@ public class AdoptanteController {
             ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/adoptante/postulaciones";
+    }
+
+    // ---------------- Contrato de adopción (PDF) ----------------
+    @GetMapping("/postulaciones/{id}/contrato")
+    public ResponseEntity<byte[]> contrato(@PathVariable Long id, Authentication auth) {
+        try {
+            byte[] pdf = contratos.generar(usuarios.actual(auth), id);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            ContentDisposition.inline().filename("contrato-adopcion-" + id + ".pdf").build().toString())
+                    .body(pdf);
+        } catch (BusinessException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

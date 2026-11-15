@@ -8,10 +8,14 @@ import com.patitas.Repository.MascotaRepository;
 import com.patitas.Repository.PostulacionRepository;
 import com.patitas.Repository.SeguimientoRepository;
 import com.patitas.Services.AdopcionService;
+import com.patitas.Services.ContratoService;
+import com.patitas.Services.EstadisticasService;
 import com.patitas.Services.MascotaService;
 import com.patitas.Services.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,6 +41,8 @@ public class RefugioController {
     private final AdopcionService adopciones;
     private final PostulacionRepository postulaciones;
     private final SeguimientoRepository seguimientos;
+    private final ContratoService contratos;
+    private final EstadisticasService estadisticas;
 
     // ---------------- Panel: inventario + alertas rojas ----------------
     @GetMapping("/panel")
@@ -82,6 +88,9 @@ public class RefugioController {
                     .filter(s -> s.getEstado() == EnumEstadoSeguimiento.VENCIDO).toList());
             model.addAttribute("pendientes",
                     postulaciones.countByMascotaRefugioAndEstado(u, EnumEstadoPostulacion.PENDIENTE));
+            // Datos de los gráficos (Chart.js)
+            model.addAttribute("grafMascotas", estadisticas.mascotasPorEstado(u));
+            model.addAttribute("grafMeses", estadisticas.adopcionesPorMes(u));
         }
         return "refugio/panel";
     }
@@ -193,6 +202,21 @@ public class RefugioController {
     public String completar(@PathVariable Long id, Authentication auth, RedirectAttributes ra) {
         return accion(ra, () -> adopciones.completar(usuarios.actual(auth), id),
                 "Adopción completada. Se generó el seguimiento a 30, 90 y 180 días.");
+    }
+
+    // ---------------- Contrato de adopción (PDF) ----------------
+    @GetMapping("/postulaciones/{id}/contrato")
+    public ResponseEntity<byte[]> contrato(@PathVariable Long id, Authentication auth) {
+        try {
+            byte[] pdf = contratos.generar(usuarios.actual(auth), id);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            ContentDisposition.inline().filename("contrato-adopcion-" + id + ".pdf").build().toString())
+                    .body(pdf);
+        } catch (BusinessException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // ---------------- Evidencia de seguimiento (foto) ----------------

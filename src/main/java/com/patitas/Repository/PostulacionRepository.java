@@ -13,5 +13,7 @@ public interface PostulacionRepository extends JpaRepository<PostulacionAdopcion
     List<PostulacionAdopcion> findByMascotaAndEstado(Mascota mascota, EnumEstadoPostulacion estado);
     boolean existsByAdoptanteAndMascotaAndEstadoIn(Usuario adoptante, Mascota mascota, Collection<EnumEstadoPostulacion> estados);
     long countByEstado(EnumEstadoPostulacion estado);
+    List<PostulacionAdopcion> findByEstado(EnumEstadoPostulacion estado);
+    List<PostulacionAdopcion> findByMascotaRefugioAndEstado(Usuario refugio, EnumEstadoPostulacion estado);
     long countByMascotaRefugioAndEstado(Usuario refugio, EnumEstadoPostulacion estado);
 }
