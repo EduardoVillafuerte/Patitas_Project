@@ -15,13 +15,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-<<<<<<< HEAD
-=======
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
->>>>>>> 30c77a3 (feat: Añadir mapa de localización de los refiguios, crear chat para que puedan comunicarse los adoptantes con el refugio, fltros por especie y raza en las mascotas y creacipon de ferias los refugios y los aoptantes poder asistir)
 @Controller
 @RequiredArgsConstructor
 public class PublicController {
