@@ -11,6 +11,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Controller
 @RequiredArgsConstructor
 public class PublicController {
@@ -24,7 +27,14 @@ public class PublicController {
 
     @GetMapping("/public/inicio")
     public String inicio(Model model) {
-        model.addAttribute("mascotas", mascotas.findByActivoTrueAndEstado(EnumEstadoMascota.DISPONIBLE));
+        // La portada muestra TODAS las mascotas activas (disponibles, en proceso y adoptadas), cada una con su etiqueta de estado.
+        // OJO: el catálogo del adoptante (AdoptanteController.catalogo) NO se toca: ahí solo salen las DISPONIBLES.
+        // Ordenamos para que las DISPONIBLES salgan primero. sorted() es estable: dentro de cada grupo se conserva
+        // el orden de la consulta (las más recientes primero). false va antes que true, por eso "es distinta de DISPONIBLE".
+        List<Mascota> todas = mascotas.findByActivoTrueOrderByIdDesc().stream()
+                .sorted(Comparator.comparing((Mascota m) -> m.getEstado() != EnumEstadoMascota.DISPONIBLE))
+                .toList();
+        model.addAttribute("mascotas", todas);
         return "public/inicio";
     }
 

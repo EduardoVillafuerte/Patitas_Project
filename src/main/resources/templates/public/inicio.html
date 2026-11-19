@@ -23,11 +23,14 @@
       </div>
     </div>
 
-    <!-- Solo las 3 primeras mascotas. En th:each el contador "it" permite cortar la lista sin código Java. -->
-    <div class="hero-fotos" th:if="${!#lists.isEmpty(mascotas)}">
-      <figure th:each="m, it : ${mascotas}" th:if="${it.index < 3}">
+    <!-- El mosaico CRECE con las mascotas: 1 foto, 2, 3... hasta un máximo de 6.
+         "n" guarda cuántas fotos se muestran y la clase "n-3", "n-4"... le dice al CSS qué distribución usar.
+         En th:each el contador "it" permite cortar la lista sin código Java. -->
+    <div class="hero-fotos" th:if="${!#lists.isEmpty(mascotas)}"
+         th:with="n=${#lists.size(mascotas) > 6 ? 6 : #lists.size(mascotas)}" th:classappend="'n-' + ${n}">
+      <figure th:each="m, it : ${mascotas}" th:if="${it.index < 6}">
         <div th:replace="~{fragments/layout :: foto(${m})}"></div>
-        <figcaption th:text="${m.nombre}">Nombre</figcaption>
+        <figcaption><span th:text="${m.nombre}">Nombre</span> <span th:replace="~{fragments/layout :: estado(${m.estado})}"></span></figcaption>
       </figure>
     </div>
   </section>
@@ -35,8 +38,24 @@
   <!-- 2. MASCOTAS DISPONIBLES -->
   <section class="seccion" aria-labelledby="tituloMascotas">
     <div class="seccion-cabecera">
-      <h2 id="tituloMascotas">Mascotas que esperan un hogar</h2>
-      <p class="muted" sec:authorize="isAnonymous()">Ingresa como adoptante para ver tu porcentaje de compatibilidad con cada una.</p>
+      <div>
+        <h2 id="tituloMascotas">Mascotas que esperan un hogar</h2>
+        <p class="muted" sec:authorize="isAnonymous()">Ingresa como adoptante para ver tu porcentaje de compatibilidad con cada una.</p>
+      </div>
+      <!-- Flechas del carrusel (el JavaScript de abajo las oculta si todas las tarjetas caben en pantalla). -->
+      <div class="carrusel-controles" id="carruselControles" th:if="${!#lists.isEmpty(mascotas)}">
+        <!-- Pausa/Reanudar del avance automático (importante para quien necesita más tiempo para leer). -->
+        <button type="button" class="carrusel-btn" id="carruselPausa" aria-pressed="false" aria-label="Pausar el avance automático">
+          <svg class="ico-pausa" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+          <svg class="ico-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>
+        </button>
+        <button type="button" class="carrusel-btn" id="carruselAnt" aria-label="Mascotas anteriores" aria-controls="pistaMascotas">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <button type="button" class="carrusel-btn" id="carruselSig" aria-label="Mascotas siguientes" aria-controls="pistaMascotas">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="vacio" th:if="${#lists.isEmpty(mascotas)}">
@@ -44,17 +63,99 @@
       <p class="muted">Cuando un refugio publique una, aparecerá aquí.</p>
     </div>
 
-    <div class="grid" th:if="${!#lists.isEmpty(mascotas)}">
+    <!-- CARRUSEL: una fila de tarjetas que se desliza (con las flechas, con el dedo o con las flechas del teclado).
+         Es CSS puro (scroll-snap) + un script corto para las flechas; no necesita ninguna librería.
+         tabindex="0" permite recorrerlo con el teclado. -->
+    <div class="carrusel-pista" id="pistaMascotas" tabindex="0" role="region" aria-roledescription="carrusel"
+         aria-label="Mascotas que esperan un hogar" th:if="${!#lists.isEmpty(mascotas)}">
       <article class="card" th:each="m : ${mascotas}">
         <div th:replace="~{fragments/layout :: foto(${m})}"></div>
         <div class="body">
-          <h3 th:text="${m.nombre}">Nombre</h3>
-          <p class="muted small" th:text="${m.especie} + ' · ' + ${m.edadAnios} + ' años'"></p>
+          <div class="row">
+            <h3 th:text="${m.nombre}">Nombre</h3>
+            <!-- Etiqueta de estado (Disponible / En proceso / Adoptado), con los mismos colores del resto de la app. -->
+            <span th:replace="~{fragments/layout :: estado(${m.estado})}"></span>
+          </div>
+          <!-- Si la edad no está registrada se omite (antes se mostraba "null años"). -->
+          <p class="muted small" th:text="${m.especie} + (${m.edadAnios != null} ? ' · ' + ${m.edadAnios} + ' años' : '')"></p>
           <p th:if="${m.descripcion != null and !#strings.isEmpty(m.descripcion)}" th:text="${m.descripcion}"></p>
           <div class="chips"><span class="tag" th:each="e : ${m.etiquetas}" th:text="${e.label}"></span></div>
         </div>
       </article>
     </div>
+
+    <script>
+      // Carrusel: avanza SOLO cada 4 segundos y al llegar al final vuelve al principio.
+      // Se detiene mientras el mouse o el dedo están encima, al usar el teclado, con el botón de pausa
+      // y cuando la pestaña no está a la vista. Si la persona pidió "reducir movimiento" en su sistema, no avanza solo.
+      (function () {
+        var pista = document.getElementById('pistaMascotas');
+        if (!pista) { return; }                       // sin mascotas no hay carrusel
+        var ant = document.getElementById('carruselAnt');
+        var sig = document.getElementById('carruselSig');
+        var pausa = document.getElementById('carruselPausa');
+        var controles = document.getElementById('carruselControles');
+        var INTERVALO = 4000;                         // milisegundos entre una tarjeta y la siguiente
+        var reloj = null;                             // guarda el temporizador para poder detenerlo
+        var pausadoPorUsuario = false;
+        var menosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function sobra() { return pista.scrollWidth - pista.clientWidth - 2; }   // cuánto se puede desplazar
+
+        function actualizar() {
+          var maximo = sobra();
+          controles.hidden = (0 >= maximo);           // todas caben: no hacen falta flechas ni avance automático
+          ant.disabled = (2 >= pista.scrollLeft);
+          sig.disabled = (pista.scrollLeft >= maximo);
+        }
+        function mover(direccion) {
+          var tarjeta = pista.querySelector('.card');
+          var espacio = parseFloat(getComputedStyle(pista).columnGap) || 20;
+          var paso = (tarjeta ? tarjeta.getBoundingClientRect().width : 280) + espacio;
+          pista.scrollBy({ left: direccion * paso, behavior: menosMovimiento ? 'auto' : 'smooth' });
+        }
+        function avanzarSolo() {
+          if (pista.scrollLeft >= sobra()) {
+            pista.scrollTo({ left: 0, behavior: 'smooth' });   // llegó al final: vuelve al inicio
+          } else {
+            mover(1);
+          }
+        }
+        function detener() {
+          if (reloj) { clearInterval(reloj); reloj = null; }
+        }
+        function iniciar() {
+          detener();                                  // nunca dejar dos temporizadores corriendo
+          if (menosMovimiento || pausadoPorUsuario || 0 >= sobra()) { return; }
+          reloj = setInterval(avanzarSolo, INTERVALO);
+        }
+
+        ant.addEventListener('click', function () { mover(-1); iniciar(); });   // iniciar() reinicia la cuenta de 4 s
+        sig.addEventListener('click', function () { mover(1); iniciar(); });
+        pausa.addEventListener('click', function () {
+          pausadoPorUsuario = !pausadoPorUsuario;
+          pausa.classList.toggle('en-pausa', pausadoPorUsuario);
+          pausa.setAttribute('aria-pressed', String(pausadoPorUsuario));
+          pausa.setAttribute('aria-label', pausadoPorUsuario ? 'Reanudar el avance automático' : 'Pausar el avance automático');
+          iniciar();                                  // si quedó en pausa, iniciar() no arranca nada
+        });
+        if (menosMovimiento) { pausa.hidden = true; } // sin avance automático el botón no tiene sentido
+
+        pista.addEventListener('mouseenter', detener);
+        pista.addEventListener('mouseleave', iniciar);
+        pista.addEventListener('focusin', detener);
+        pista.addEventListener('focusout', iniciar);
+        pista.addEventListener('touchstart', detener, { passive: true });
+        pista.addEventListener('touchend', iniciar, { passive: true });
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) { detener(); } else { iniciar(); }
+        });
+        pista.addEventListener('scroll', actualizar, { passive: true });
+        window.addEventListener('resize', function () { actualizar(); iniciar(); });
+        actualizar();
+        iniciar();
+      })();
+    </script>
   </section>
 
   <!-- 3. CÓMO FUNCIONA: lista ordenada real (<ol>), pero el orden se ve por la posición, sin numeración decorativa. -->

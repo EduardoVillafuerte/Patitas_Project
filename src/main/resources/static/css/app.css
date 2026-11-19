@@ -1,24 +1,3 @@
-/* =====================================================================
-   PATITAS · hoja de estilos única (app.css)
-
-   Cómo está organizada (busca el número con Ctrl+F):
-    1. Variables (colores, tipografía)      9. Paneles, tarjetas y fotos
-    2. Base de la página                   10. Tablas (y tablas apiladas en móvil)
-    3. Navegación y pie                    11. Compatibilidad (porcentaje)
-    4. Contenedores y utilidades           12. Inicio (portada)
-    5. Mensajes                            13. Login y registro
-    6. Botones                             14. Adoptante (perfil y detalle)
-    7. Etiquetas y estados                 15. Refugio y administrador
-    8. Formularios                         16. Error, animaciones y adaptación a móvil
-
-   Reglas de diseño que seguimos:
-   - Un solo color de acción (verde azulado). Los demás colores solo
-     comunican estados (ok, aviso, error).
-   - Superficies planas: se separan con un cambio de tono, no con sombras.
-   - Sin emojis como iconos, sin degradados.
-   ===================================================================== */
-
-
 /* ---------- 1. Variables ---------- */
 :root {
   /* Marca */
@@ -73,7 +52,9 @@
 html { scroll-padding-top: 5rem; }
 body {
   margin: 0; min-height: 100svh; display: flex; flex-direction: column;
-  background: var(--ground); color: var(--ink);
+  /* Fondo de animales en TODAS las páginas (portada, paneles, catálogo...). Es la misma variable que usa el login. */
+  background-color: var(--ground); background-image: var(--patron-animales); background-size: 340px;
+  color: var(--ink);
   font-family: var(--font-text); font-size: 1.0625rem; line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   accent-color: var(--accent);   /* casillas y selectores del navegador con nuestro color */
@@ -122,9 +103,28 @@ a:hover { color: var(--pine); }
 .nav .brand:hover { background: none; }
 .nav .marca { width: 1.5rem; height: 1.5rem; fill: var(--sun); }   /* huella dibujada en layout.html */
 .nav .dot { color: var(--sun); }
-.nav .who { font-size: .9rem; color: #cfe3da; padding: 0 .5rem; }
 .nav form { margin: 0; }
-.nav form button { border: 1.5px solid rgba(255, 255, 255, .5); }
+
+/* Menú de usuario: círculo con la inicial del correo + lista desplegable (layout.html) */
+.usuario-menu { position: relative; margin-left: .25rem; }
+.nav button.usuario-boton { display: inline-flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; line-height: 1; }
+.nav button.usuario-boton:hover { background: none; }
+.avatar-nav { width: 2.4rem; height: 2.4rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--sun); color: var(--pine); font-family: var(--font-title); font-size: 1.15rem; font-weight: 800;
+  transition: box-shadow .15s ease; }
+.nav button.usuario-boton:hover .avatar-nav,
+.nav button.usuario-boton[aria-expanded="true"] .avatar-nav { box-shadow: 0 0 0 3px rgba(255, 255, 255, .35); }
+.usuario-lista { position: absolute; right: 0; top: calc(100% + .6rem); z-index: 30; min-width: 15rem; margin: 0; padding: .4rem; list-style: none;
+  background: var(--surface); color: var(--ink); border-radius: 14px; box-shadow: 0 12px 32px rgba(18, 51, 45, .22); }   /* taste-skill-ignore: menú flotante real */
+.usuario-correo { margin-bottom: .3rem; padding: .6rem .8rem .7rem; border-bottom: 1px solid var(--line); font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+.nav .usuario-lista a, .nav .usuario-lista button { display: flex; align-items: center; gap: .7rem; width: 100%; padding: .65rem .8rem;
+  border: 0; border-radius: 10px; background: none; font-size: .95rem; font-weight: 600; text-align: left; }
+.nav .usuario-lista a { color: var(--ink); }
+.nav .usuario-lista a:hover { background: var(--tone); color: var(--ink); }
+.nav .usuario-lista button.salir { color: var(--alert); }                                   /* rojo: acción de salida · 6.5:1 sobre blanco */
+.nav .usuario-lista button.salir:hover { background: var(--alert-bg); color: var(--alert-ink); }
+.nav .usuario-lista :focus-visible { outline-color: var(--accent); }
+.usuario-lista svg { width: 1.15rem; height: 1.15rem; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 .pie { margin-top: 4rem; padding: 2.5rem 0; background: var(--pine); color: #cfe3da; }
 .pie-interior { max-width: 1120px; margin: 0 auto; padding: 0 1.25rem; }
@@ -284,16 +284,43 @@ th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .hero h1 { grid-column: 1 / -1; font-size: clamp(2rem, 6.2vw, 4.5rem); line-height: 1.02; letter-spacing: -0.035em; font-weight: 800; }
 .hero.solo { grid-template-columns: 1fr; }
 .hero-intro { font-size: 1.25rem; max-width: 36rem; margin-bottom: 1.75rem; }
-.hero-fotos { display: grid; grid-template-columns: 1.3fr 1fr; grid-auto-rows: minmax(130px, 1fr); gap: .75rem; }
-.hero-fotos figure { margin: 0; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); overflow: hidden; }
-.hero-fotos figure:first-child { grid-row: span 2; }
-.hero-fotos .foto { aspect-ratio: auto; flex: 1; min-height: 130px; }
-.hero-fotos figcaption { padding: .55rem .9rem; font-weight: 700; font-size: .95rem; }
+/* MOSAICO: crece de 1 a 6 fotos según cuántas mascotas haya. inicio.html agrega la clase n-1 ... n-6.
+   align-self: stretch hace que el mosaico tenga la misma altura que el texto de al lado (con un mínimo de 20rem). */
+.hero-fotos { align-self: stretch; min-height: 20rem; display: grid; gap: .75rem;
+  grid-template-columns: repeat(2, 1fr); grid-auto-rows: minmax(9rem, 1fr); }
+.hero-fotos.n-1 { grid-template-columns: 1fr; }
+.hero-fotos.n-3 { grid-template-columns: 1.3fr 1fr; }
+.hero-fotos.n-5 { grid-template-columns: 1.4fr 1fr 1fr; }
+.hero-fotos.n-6 { grid-template-columns: repeat(3, 1fr); }
+.hero-fotos.n-3 figure:first-child, .hero-fotos.n-5 figure:first-child { grid-row: span 2; }   /* la primera foto ocupa dos filas */
+.hero-fotos figure { margin: 0; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); overflow: hidden; }
+/* La imagen se posiciona absoluta para llenar su recuadro sin importar la altura que le toque. */
+.hero-fotos .foto { position: relative; aspect-ratio: auto; flex: 1; min-height: 0; }
+.hero-fotos .foto img { position: absolute; inset: 0; }
+.hero-fotos figcaption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem .5rem;
+  padding: .55rem .9rem; font-weight: 700; font-size: .95rem; }
 
 .seccion { margin-top: clamp(4rem, 9vw, 7rem); }
 .seccion h2 { margin-top: 0; }
 .seccion-cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem 1.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .seccion-cabecera p { margin: 0; }
+
+/* CARRUSEL de mascotas: fila que se desliza y se "imanta" a cada tarjeta (scroll-snap). */
+.seccion-cabecera { align-items: flex-end; }
+.carrusel-controles { display: flex; gap: .5rem; }
+.carrusel-btn { width: 2.75rem; height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  background: var(--surface); color: var(--pine); border: 2px solid var(--accent); border-radius: 50%; cursor: pointer;
+  transition: background .15s ease, color .15s ease; }
+.carrusel-btn:hover:not(:disabled) { background: var(--accent); color: #fff; }
+.carrusel-btn:disabled { opacity: .4; cursor: not-allowed; }
+.carrusel-btn .ico-play { display: none; }                         /* el botón de pausa muestra "pausa" o "play" según su estado */
+.carrusel-btn.en-pausa .ico-play { display: block; }
+.carrusel-btn.en-pausa .ico-pausa { display: none; }
+.carrusel-btn svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.carrusel-pista { display: flex; gap: 1.25rem; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 0;
+  padding: .5rem 0 .75rem; scrollbar-width: none; overscroll-behavior-x: contain; }   /* el padding vertical evita que se corte el efecto hover */
+.carrusel-pista::-webkit-scrollbar { display: none; }
+.carrusel-pista > .card { flex: 0 0 clamp(250px, 28%, 320px); scroll-snap-align: start; }
 
 .como ol { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
 .como li { border-radius: 20px; padding: 1.75rem; }
@@ -312,7 +339,7 @@ th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ---------- 13. Login y registro ---------- */
 /* Fondo de animales: la variable --patron-animales se define arriba, en :root. Lo usan login y registro. */
-.login-fondo { flex: 1; display: flex; align-items: center; background-color: var(--tone); background-image: var(--patron-animales); background-size: 340px; }
+.login-fondo { flex: 1; display: flex; align-items: center; }   /* el fondo de animales ya viene del <body> */
 .login-fondo > .container { margin: 0 auto; width: 100%; }
 .login-fondo ~ .pie { margin-top: 0; }   /* el fondo llega hasta el pie, sin franja en medio */
 .container.login-page { max-width: 960px; padding-top: 2.5rem; padding-bottom: 3rem; }
@@ -522,9 +549,10 @@ details.detalles p:last-child { margin-bottom: 0; }
   .nav-links { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: .15rem; padding: .5rem 0 .25rem; }
   .nav.abierto .nav-links { display: flex; }
   .nav-links a, .nav-links button { padding: .7rem .9rem; border-radius: 12px; text-align: left; }
-  .nav-links form { width: 100%; }
-  .nav-links form button { width: 100%; text-align: center; }
-  .nav .who { padding: .5rem .9rem; }
+  /* En teléfono el menú de usuario se muestra desplegado dentro del menú plegable, sin flotar. */
+  .usuario-menu { margin: .25rem 0 0; }
+  .usuario-lista { position: static; margin-top: .4rem; box-shadow: none; }
+  .hero-fotos { min-height: 18rem; }
 }
 @media (max-width: 720px) {
   .cols { grid-template-columns: 1fr; }
@@ -546,6 +574,9 @@ details.detalles p:last-child { margin-bottom: 0; }
   .acciones .btn.lg { width: 100%; }
   .bienvenida .acciones { width: 100%; }
   .grid { grid-template-columns: 1fr; }
+  .carrusel-pista > .card { flex-basis: 82%; }
+  .hero-fotos.n-5, .hero-fotos.n-6 { grid-template-columns: repeat(2, 1fr); min-height: 26rem; }
+  .hero-fotos.n-5 figure:first-child { grid-column: span 2; grid-row: auto; }
   .panel { padding: 1.1rem; }
 }
 @media (prefers-reduced-motion: reduce) {

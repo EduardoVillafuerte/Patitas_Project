@@ -53,10 +53,38 @@
     <a th:href="@{/registro}">Crear cuenta</a>
   </th:block>
 
+  <!-- MENÚ DE USUARIO: círculo con la primera letra del correo. Al hacer clic se despliega la lista.
+       #authentication.name es el correo con el que se inició sesión (el "username" de Spring Security).
+       El th:text con "? :" evita un error si el nombre llegara vacío. -->
   <th:block sec:authorize="isAuthenticated()">
-    <span class="who" sec:authentication="name">usuario</span>
-    <!-- El logout es POST (con token CSRF automático gracias a th:action). -->
-    <form th:action="@{/logout}" method="post"><button type="submit">Salir</button></form>
+    <div class="usuario-menu">
+      <button type="button" class="usuario-boton" aria-haspopup="true" aria-expanded="false" aria-controls="usuarioMenu"
+              th:attr="aria-label='Menú de usuario: ' + ${#authentication.name}">
+        <span class="avatar-nav" aria-hidden="true"
+              th:text="${#strings.isEmpty(#authentication.name)} ? '?' : ${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 1))}">U</span>
+      </button>
+      <ul class="usuario-lista" id="usuarioMenu" hidden>
+        <li class="usuario-correo" th:text="${#authentication.name}">correo@ejemplo.com</li>
+
+        <!-- Solo el adoptante tiene perfil de estilo de vida que configurar. -->
+        <li sec:authorize="hasRole('ADOPTANTE')">
+          <a th:href="@{/adoptante/perfil}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+            Configurar perfil
+          </a>
+        </li>
+
+        <!-- El logout es POST (con token CSRF automático gracias a th:action). -->
+        <li>
+          <form th:action="@{/logout}" method="post">
+            <button type="submit" class="salir">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+              Salir
+            </button>
+          </form>
+        </li>
+      </ul>
+    </div>
   </th:block>
   </div>
 
@@ -70,6 +98,30 @@
         boton.setAttribute('aria-expanded', String(abierto));
         boton.setAttribute('aria-label', abierto ? 'Cerrar menú' : 'Abrir menú');
       });
+
+      // Menú de usuario: clic en el círculo abre/cierra; clic fuera o la tecla Escape lo cierran.
+      // (Si nadie inició sesión, ese menú no existe y este bloque simplemente no hace nada.)
+      var menuU = nav.querySelector('.usuario-menu');
+      if (menuU) {
+        var botonU = menuU.querySelector('.usuario-boton');
+        var listaU = menuU.querySelector('.usuario-lista');
+        var cerrarU = function () {
+          listaU.hidden = true;
+          botonU.setAttribute('aria-expanded', 'false');
+        };
+        botonU.addEventListener('click', function (e) {
+          e.stopPropagation();                 // evita que el clic llegue al "clic fuera" de abajo
+          var abrir = listaU.hidden;
+          listaU.hidden = !abrir;
+          botonU.setAttribute('aria-expanded', String(abrir));
+        });
+        document.addEventListener('click', function (e) {
+          if (!menuU.contains(e.target)) { cerrarU(); }
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && !listaU.hidden) { cerrarU(); botonU.focus(); }
+        });
+      }
     })();
   </script>
 </nav>
