@@ -81,6 +81,8 @@ public class MascotaService {
 
     /** Aplica únicamente los campos que sí están permitidos editar a lo largo del tiempo */
     private void aplicarMutables(Mascota m, MascotaForm f) {
+        // La raza sí se puede editar (las mascotas antiguas no la tenían)
+        m.setRaza(f.getRaza() == null || f.getRaza().isBlank() ? null : f.getRaza().trim());
         m.setEdadAnios(f.getEdadAnios());
         m.setDescripcion(f.getDescripcion());
         m.setNivelEnergia(f.getNivelEnergia());

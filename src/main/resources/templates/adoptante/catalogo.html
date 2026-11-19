@@ -11,7 +11,27 @@
   <div class="alert err" th:if="${usuario.baneado}">
     Tu cuenta está en la lista negra. Puedes ver el catálogo, pero no postular a adopciones.
   </div>
-  <p class="muted" th:if="${#lists.isEmpty(items)}">No hay mascotas disponibles por ahora.</p>
+
+  <!-- Filtros: especie (desplegable con las que hay) y raza (texto libre, coincide con parte del nombre) -->
+  <form class="x-filtros" method="get" th:action="@{/adoptante/catalogo}">
+    <div>
+      <label for="fEspecie">Especie</label>
+      <select id="fEspecie" name="especie">
+        <option value="">Todas</option>
+        <option th:each="e : ${especies}" th:value="${e}" th:text="${e}" th:selected="${e.equalsIgnoreCase(fEspecie)}"></option>
+      </select>
+    </div>
+    <div>
+      <label for="fRaza">Raza</label>
+      <input id="fRaza" type="text" name="raza" th:value="${fRaza}" maxlength="60" placeholder="Ej: Labrador">
+    </div>
+    <div class="x-filtros-btns">
+      <button class="btn" type="submit">Filtrar</button>
+      <a class="btn line" th:href="@{/adoptante/catalogo}">Limpiar</a>
+    </div>
+  </form>
+
+  <p class="muted" th:if="${#lists.isEmpty(items)}">No hay mascotas que coincidan por ahora.</p>
 
   <div class="grid">
     <article class="card" th:each="item : ${items}">
@@ -26,7 +46,8 @@
           <span th:classappend="${item.score ge 75 ? 'high' : (item.score ge 50 ? 'mid' : 'low')}"
                 th:style="'width:' + ${item.score} + '%'"></span>
         </div>
-        <p class="muted small" th:text="${item.mascota.especie} + ' · ' + ${item.mascota.edadAnios} + ' años'"></p>
+        <p class="muted small" th:text="${item.mascota.especie} + (${item.mascota.raza != null and !#strings.isEmpty(item.mascota.raza)} ? ' · ' + ${item.mascota.raza} : '') + ' · ' + ${item.mascota.edadAnios} + ' años'"></p>
+        <p class="muted small" th:text="'Refugio: ' + ${item.mascota.refugio.nombre}"></p>
         <div class="chips"><span class="tag" th:each="e : ${item.mascota.etiquetas}" th:text="${e.label}"></span></div>
         <a class="btn" th:href="@{/adoptante/mascotas/{id}(id=${item.mascota.id})}">Conocer más</a>
       </div>

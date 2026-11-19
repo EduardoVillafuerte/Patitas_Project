@@ -25,6 +25,10 @@ public class Mascota {
     @Column(nullable = false)
     private String especie;
 
+    /** Raza (opcional). Ej: "Labrador", "Siamés" o "Mestizo". */
+    @Column(length = 60)
+    private String raza;
+
     private Integer edadAnios;
 
     @Column(length = 1000)

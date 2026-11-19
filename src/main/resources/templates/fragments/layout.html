@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap">
   <title th:text="${titulo} + ' | Patitas'">Patitas</title>
   <link rel="stylesheet" th:href="@{/css/app.css}">
+  <link rel="stylesheet" th:href="@{/css/extras.css}">
 </head>
 <body>
 
@@ -32,6 +33,8 @@
   <!-- Todos los enlaces viven dentro de .nav-links: en escritorio van en fila; en teléfono se despliegan con el botón. -->
   <div class="nav-links" id="menuPrincipal">
   <a th:href="@{/public/inicio}">Mascotas</a>
+  <a th:href="@{/public/mapa}">Mapa</a>
+  <a th:href="@{/public/ferias}">Ferias</a>
 
   <th:block sec:authorize="hasRole('ADOPTANTE')">
     <a th:href="@{/adoptante/catalogo}">Mi catálogo</a>
@@ -42,6 +45,7 @@
   <th:block sec:authorize="hasRole('REFUGIO')">
     <a th:href="@{/refugio/panel}">Mi refugio</a>
     <a th:href="@{/refugio/postulaciones}">Postulaciones</a>
+    <a th:href="@{/refugio/ferias}">Mis ferias</a>
   </th:block>
 
   <th:block sec:authorize="hasRole('ADMIN')">

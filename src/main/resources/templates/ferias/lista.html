@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Ferias de adopción')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <h1>Ferias de adopción</h1>
+  <p class="muted">Eventos donde los refugios llevan a sus mascotas para que las conozcas en persona.</p>
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+  <div class="vacio" th:if="${#lists.isEmpty(items)}">
+    <h2>No hay ferias programadas</h2>
+    <p class="muted">Cuando un refugio publique una feria, aparecerá aquí.</p>
+  </div>
+
+  <article class="panel x-feria" th:each="item : ${items}">
+    <div class="row">
+      <div>
+        <h2 th:text="${item.feria.titulo}">Título</h2>
+        <p class="muted small" th:text="'Organiza: ' + ${item.feria.refugio.nombre}"></p>
+      </div>
+      <span class="tag" th:if="${item.inscrito}">Inscrito</span>
+      <span class="tag" th:if="${!item.inscrito and item.lleno}">Cupo lleno</span>
+    </div>
+
+    <ul class="datos">
+      <li th:text="'Fecha: ' + ${#temporals.format(item.feria.fecha, 'dd/MM/yyyy')}"></li>
+      <li th:text="'Hora: ' + ${#temporals.format(item.feria.horaInicio, 'HH:mm')} + (${item.feria.horaFin != null} ? ' a ' + ${#temporals.format(item.feria.horaFin, 'HH:mm')} : '')"></li>
+      <li th:text="'Lugar: ' + ${item.feria.lugar}"></li>
+      <li th:text="${item.feria.cupo != null} ? 'Inscritos: ' + ${item.inscritos} + ' de ' + ${item.feria.cupo} : 'Inscritos: ' + ${item.inscritos}"></li>
+    </ul>
+    <p th:if="${item.feria.descripcion != null}" th:text="${item.feria.descripcion}"></p>
+
+    <div class="acciones">
+      <a class="btn sm line" th:if="${item.feria.refugio.tieneUbicacion()}"
+         th:href="@{/public/mapa(refugio=${item.feria.refugio.id})}">Ver refugio en el mapa</a>
+
+      <!-- Visitante sin sesión -->
+      <a class="btn sm" sec:authorize="isAnonymous()" th:href="@{/login}">Ingresa para inscribirte</a>
+
+      <!-- Adoptante -->
+      <th:block th:if="${esAdoptante}">
+        <form class="inline" th:if="${!item.inscrito and !item.lleno}"
+              th:action="@{/adoptante/ferias/{id}/inscribir(id=${item.feria.id})}" method="post">
+          <button class="btn sm" type="submit">Inscribirme</button>
+        </form>
+        <form class="inline" th:if="${item.inscrito}"
+              th:action="@{/adoptante/ferias/{id}/cancelar(id=${item.feria.id})}" method="post"
+              onsubmit="return confirm('¿Cancelar tu inscripción?');">
+          <button class="btn sm danger" type="submit">Cancelar inscripción</button>
+        </form>
+      </th:block>
+    </div>
+    <p class="muted small" th:if="${esAdoptante and !item.inscrito and !item.lleno}">Al inscribirte, el refugio verá tu nombre y correo.</p>
+  </article>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

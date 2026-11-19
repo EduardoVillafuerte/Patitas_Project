@@ -72,6 +72,8 @@ public class SecurityConfig {
                 .requestMatchers("/adoptante/**").hasRole("ADOPTANTE")
                 .requestMatchers("/refugio/**").hasRole("REFUGIO")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                // El chat de cada postulación lo usan adoptante y refugio (ChatService verifica que seas parte de ESA postulación).
+                .requestMatchers("/chat/**").hasAnyRole("ADOPTANTE", "REFUGIO")
                 // Cualquier otra URL que no listamos arriba exige haber iniciado sesión.
                 .anyRequest().authenticated())
             .formLogin(form -> form

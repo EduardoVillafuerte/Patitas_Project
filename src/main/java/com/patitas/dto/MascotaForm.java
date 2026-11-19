@@ -27,6 +27,9 @@ public class MascotaForm {
     @Size(max = 40, message = "Máximo 40 caracteres")
     private String especie;
 
+    @Size(max = 60, message = "Máximo 60 caracteres")
+    private String raza;
+
     @NotNull(message = "Ingresa la edad")
     @Min(value = 0, message = "Mínimo 0")
     @Max(value = 40, message = "Máximo 40 años")
@@ -66,6 +69,7 @@ public class MascotaForm {
         MascotaForm f = new MascotaForm();
         f.nombre = m.getNombre();
         f.especie = m.getEspecie();
+        f.raza = m.getRaza();
         f.edadAnios = m.getEdadAnios();
         f.descripcion = m.getDescripcion();
         f.nivelEnergia = m.getNivelEnergia();

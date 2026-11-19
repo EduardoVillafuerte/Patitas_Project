@@ -11,6 +11,7 @@ import com.patitas.Repository.SeguimientoRepository;
 import com.patitas.Services.AdopcionService;
 import com.patitas.Services.CompatibilidadService;
 import com.patitas.Services.ContratoService;
+import com.patitas.Services.FiltroMascotas;
 import com.patitas.Services.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -91,12 +92,18 @@ public class AdoptanteController {
 
     // Catálogo ordenado por compatibilidad
     @GetMapping("/catalogo")
-    public String catalogo(Authentication auth, Model model) {
+    public String catalogo(@RequestParam(required = false) String especie,
+                           @RequestParam(required = false) String raza,
+                           Authentication auth, Model model) {
         Usuario u = usuarios.actual(auth);
         if (!u.isPerfilCompleto()) {
             return "redirect:/adoptante/perfil";
         }
-        List<MascotaConScore> items = mascotas.findByActivoTrueAndEstado(EnumEstadoMascota.DISPONIBLE).stream()
+        List<Mascota> disponibles = mascotas.findByActivoTrueAndEstado(EnumEstadoMascota.DISPONIBLE);
+        model.addAttribute("especies", FiltroMascotas.especiesDe(disponibles));
+        model.addAttribute("fEspecie", especie);
+        model.addAttribute("fRaza", raza);
+        List<MascotaConScore> items = FiltroMascotas.filtrar(disponibles, especie, raza).stream()
                 .map(m -> compatibilidad.evaluar(u, m))
                 .sorted(Comparator.comparingInt(MascotaConScore::getScore).reversed())
                 .toList();

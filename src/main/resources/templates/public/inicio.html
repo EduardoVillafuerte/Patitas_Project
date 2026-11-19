@@ -13,6 +13,7 @@
     <div class="hero-texto">
       <p class="hero-intro">Cada mascota tiene necesidades distintas. Completa tu perfil y te mostramos primero
          las que mejor se adaptan a tu casa, tu tiempo y tu presupuesto.</p>
+      <p><a class="btn line" th:href="@{/public/mapa}">Encontrar refugios en el mapa</a></p>
       <!-- sec:authorize muestra cada bloque solo a quien corresponde -->
       <div class="acciones" sec:authorize="isAnonymous()">
         <a class="btn lg" th:href="@{/registro}">Crear cuenta</a>

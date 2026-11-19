@@ -55,12 +55,20 @@
         <div class="col">
           <label for="especie">Especie <span class="req">*</span></label>
           <!-- Si se está editando, no se puede cambiar la especie -->
-          <input id="especie" type="text" th:field="*{especie}" th:errorclass="invalid" required maxlength="40" placeholder="Ej: Perro, Gato"
+          <input id="especie" type="text" th:field="*{especie}" th:errorclass="invalid" required maxlength="40" placeholder="Ej: Perro, Gato" list="listaEspecies"
                  th:readonly="${mascotaId != null}" th:style="${mascotaId != null ? 'background:#f0f0f0;pointer-events:none;' : ''}">
           <div class="field-error" th:if="${#fields.hasErrors('especie')}" th:errors="*{especie}"></div>
         </div>
       </div>
       <p class="hint" th:if="${mascotaId != null}">El nombre y la especie base no se pueden modificar tras el registro.</p>
+      <datalist id="listaEspecies">
+        <option value="Perro"></option><option value="Gato"></option><option value="Conejo"></option>
+        <option value="Ave"></option><option value="Otro"></option>
+      </datalist>
+
+      <label for="raza">Raza <span class="muted small">(opcional)</span></label>
+      <input id="raza" type="text" th:field="*{raza}" th:errorclass="invalid" maxlength="60" placeholder="Ej: Labrador, Siamés o Mestizo">
+      <div class="field-error" th:if="${#fields.hasErrors('raza')}" th:errors="*{raza}"></div>
 
       <div class="row-campos">
         <div class="col">

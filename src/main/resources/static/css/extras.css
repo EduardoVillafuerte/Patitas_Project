@@ -1,0 +1,70 @@
+/* =====================================================================
+   PATITAS · extras.css
+   Estilos de las funciones nuevas: filtros, mapa, chat y ferias.
+   Usa las variables de app.css (colores y bordes) para verse igual que el resto.
+   Todas las clases empiezan con "x-" para no chocar con las de app.css.
+   ===================================================================== */
+
+[hidden] { display: none !important; }
+
+/* ---------- Filtros (catálogo y mapa) ---------- */
+.x-filtros {
+  display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
+  background: var(--tone); border-radius: 12px; padding: 1rem; margin: 1rem 0 1.5rem;
+}
+.x-filtros > div { display: flex; flex-direction: column; gap: .25rem; min-width: 180px; flex: 1 1 180px; }
+.x-filtros label { font-weight: 600; font-size: .9rem; }
+.x-filtros .x-filtros-btns { flex-direction: row; gap: .5rem; flex: 0 0 auto; min-width: 0; }
+
+/* ---------- Refugio en el detalle de la mascota ---------- */
+.x-refugio {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem;
+  background: var(--tone); border-radius: 12px; padding: .75rem 1rem; margin: 1rem 0;
+}
+.x-refugio > div { display: flex; flex-direction: column; gap: .1rem; }
+
+/* ---------- Mapa (Leaflet) ---------- */
+.x-mapa { height: 480px; border-radius: 12px; overflow: hidden; background: var(--tone-2); z-index: 0; }
+.x-mapa-form { height: 360px; }
+.x-mapa-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1rem; margin-bottom: 1rem; }
+.x-mapa-lista { max-height: 480px; overflow-y: auto; }
+.x-mapa-lista ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.x-ref-item {
+  width: 100%; text-align: left; display: flex; flex-direction: column; gap: .1rem;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--tone-2);
+  border-radius: 10px; padding: .6rem .8rem; cursor: pointer; font: inherit;
+}
+.x-ref-item:hover, .x-ref-item:focus-visible { border-color: var(--accent); background: var(--mint); }
+.x-popup { min-width: 180px; font-family: inherit; }
+.x-popup p { margin: .25rem 0; }
+.x-popup ul { margin: .25rem 0 .5rem; padding-left: 1.1rem; }
+.x-popup-n { color: var(--muted); font-size: .85rem; }
+@media (max-width: 800px) {
+  .x-mapa-layout { grid-template-columns: 1fr; }
+  .x-mapa { height: 360px; }
+  .x-mapa-lista { max-height: none; }
+}
+
+/* ---------- Chat ---------- */
+.x-chat { background: var(--surface); border-radius: 12px; border: 1px solid var(--tone-2); overflow: hidden; }
+.x-chat-mensajes {
+  height: 55vh; min-height: 280px; overflow-y: auto; padding: 1rem;
+  display: flex; flex-direction: column; gap: .6rem; background: var(--ground);
+}
+.x-chat-vacio { margin: auto; text-align: center; }
+.x-msg {
+  max-width: 78%; align-self: flex-start; background: var(--surface); border: 1px solid var(--tone-2);
+  border-radius: 14px 14px 14px 4px; padding: .5rem .75rem; display: flex; flex-direction: column; gap: .15rem;
+}
+.x-msg.mio { align-self: flex-end; background: var(--mint); border-color: transparent; border-radius: 14px 14px 4px 14px; }
+.x-msg p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.x-msg-autor { font-size: .78rem; font-weight: 700; color: var(--muted); }
+.x-msg time { font-size: .72rem; color: var(--muted); align-self: flex-end; }
+.x-chat-form { display: flex; gap: .5rem; padding: .75rem; border-top: 1px solid var(--tone-2); align-items: flex-end; }
+.x-chat-form textarea { flex: 1; resize: vertical; min-height: 2.6rem; max-height: 8rem; margin: 0; }
+.x-chat .alert { margin: .5rem .75rem; }
+.x-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Ferias ---------- */
+.x-feria .datos { margin: .5rem 0; }
+.x-feria .acciones { margin-top: .75rem; }

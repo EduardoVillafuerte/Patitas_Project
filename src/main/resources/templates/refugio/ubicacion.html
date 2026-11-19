@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mi ubicación')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container narrow">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <a class="volver" th:href="@{/refugio/panel}">← Volver a mi refugio</a>
+  <div class="auth-cabecera">
+    <h1>Ubicación de mi refugio</h1>
+    <p class="muted">Haz clic en el mapa para marcar dónde queda tu refugio. Así los adoptantes podrán encontrarte y visitarte.</p>
+  </div>
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+  <form class="panel" th:action="@{/refugio/ubicacion}" th:object="${form}" method="post">
+    <label for="direccion">Dirección o referencia <span class="req">*</span></label>
+    <input id="direccion" type="text" th:field="*{direccion}" th:errorclass="invalid" maxlength="200" required
+           placeholder="Ej: Av. Eloy Alfaro y Portugal, Quito">
+    <div class="field-error" th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}"></div>
+
+    <label>Punto en el mapa <span class="req">*</span></label>
+    <div class="x-mapa x-mapa-form" id="mapaUbic" role="application" aria-label="Mapa para marcar la ubicación del refugio"></div>
+    <p class="hint">
+      <button class="btn sm line" type="button" id="btnGeo">Usar mi ubicación actual</button>
+      <span id="coordTexto" class="muted small">Aún no has marcado un punto.</span>
+    </p>
+    <input type="hidden" id="latitud" th:field="*{latitud}">
+    <input type="hidden" id="longitud" th:field="*{longitud}">
+    <div class="field-error" th:if="${#fields.hasErrors('latitud')}" th:errors="*{latitud}"></div>
+    <div class="field-error" th:if="${#fields.hasErrors('longitud')}" th:errors="*{longitud}"></div>
+
+    <p>
+      <button class="btn lg" type="submit">Guardar ubicación</button>
+      <a class="btn lg line" th:href="@{/refugio/panel}">Cancelar</a>
+    </p>
+  </form>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  (function () {
+    var lat = document.getElementById('latitud');
+    var lng = document.getElementById('longitud');
+    var texto = document.getElementById('coordTexto');
+    var QUITO = [-0.1807, -78.4678];
+
+    function numero(v) {
+      var n = parseFloat(String(v).replace(',', '.'));
+      return isNaN(n) ? null : n;
+    }
+    var latIni = numero(lat.value);
+    var lngIni = numero(lng.value);
+    var tienePunto = latIni !== null && lngIni !== null;
+
+    var mapa = L.map('mapaUbic').setView(tienePunto ? [latIni, lngIni] : QUITO, tienePunto ? 16 : 12);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; contribuidores de OpenStreetMap'
+    }).addTo(mapa);
+
+    var marcador = null;
+    function poner(la, lo) {
+      lat.value = la.toFixed(6);
+      lng.value = lo.toFixed(6);
+      texto.textContent = 'Punto marcado: ' + lat.value + ', ' + lng.value;
+      if (marcador) { marcador.setLatLng([la, lo]); }
+      else {
+        marcador = L.marker([la, lo], { draggable: true }).addTo(mapa);
+        marcador.on('dragend', function () {
+          var p = marcador.getLatLng();
+          poner(p.lat, p.lng);
+        });
+      }
+    }
+    if (tienePunto) { poner(latIni, lngIni); }
+
+    mapa.on('click', function (e) { poner(e.latlng.lat, e.latlng.lng); });
+
+    document.getElementById('btnGeo').addEventListener('click', function () {
+      if (!navigator.geolocation) { texto.textContent = 'Tu navegador no permite obtener la ubicación.'; return; }
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        poner(pos.coords.latitude, pos.coords.longitude);
+        mapa.setView([pos.coords.latitude, pos.coords.longitude], 16);
+      }, function () {
+        texto.textContent = 'No se pudo obtener tu ubicación. Márcala haciendo clic en el mapa.';
+      });
+    });
+  })();
+</script>
+</body>
+</html>

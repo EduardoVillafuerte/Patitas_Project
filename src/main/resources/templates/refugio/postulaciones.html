@@ -68,6 +68,10 @@
     <div class="acciones" th:if="${p.estado.name() == 'COMPLETADA'}">
       <a class="btn sm" th:href="@{/refugio/postulaciones/{id}/contrato(id=${p.id})}" target="_blank" rel="noopener">Descargar contrato (PDF)</a>
     </div>
+    <div class="acciones">
+      <a class="btn sm line" th:href="@{/chat/postulaciones/{id}(id=${p.id})}"
+         th:text="${p.estado.name() == 'RECHAZADA'} ? 'Ver chat' : 'Chat con el adoptante'">Chat</a>
+    </div>
     <!-- Pide confirmación antes de rechazar (QA: evita rechazos por un clic accidental). -->
     <form class="form-rechazo" th:if="${p.estado.name() == 'PENDIENTE' or p.estado.name() == 'APROBADA'}"
           th:action="@{/refugio/postulaciones/{id}/rechazar(id=${p.id})}" method="post"

@@ -1,6 +1,7 @@
 package com.patitas.Services;
 
 import com.patitas.dto.PerfilForm;
+import com.patitas.dto.UbicacionForm;
 import com.patitas.dto.RegistroForm;
 import com.patitas.exception.BusinessException;
 import com.patitas.validation.IdentificacionEc;
@@ -131,6 +132,18 @@ public class UsuarioService implements UserDetailsService {
 
     private static String vacioANull(String s) {
         return (s == null || s.isBlank()) ? null : s.trim();
+    }
+
+    /** Guarda dónde queda el refugio (dirección + punto en el mapa). */
+    @Transactional
+    public void guardarUbicacion(Usuario u, UbicacionForm f) {
+        if (u.getRol() != EnumRol.REFUGIO) {
+            throw new BusinessException("Solo los refugios tienen ubicación.");
+        }
+        u.setDireccion(f.getDireccion().trim());
+        u.setLatitud(f.getLatitud());
+        u.setLongitud(f.getLongitud());
+        repo.save(u);
     }
 
     // ---- Acciones de administración ----

@@ -14,7 +14,7 @@
   </div>
   <div class="table-wrap" th:if="${!#lists.isEmpty(postulaciones)}">
     <table class="tabla-apilada">
-      <thead><tr><th>Mascota</th><th>Fecha</th><th class="num">Compatibilidad</th><th>Estado</th><th>Motivo del rechazo</th><th>Contrato</th></tr></thead>
+      <thead><tr><th>Mascota</th><th>Fecha</th><th class="num">Compatibilidad</th><th>Estado</th><th>Motivo del rechazo</th><th>Contrato</th><th>Chat</th></tr></thead>
       <tbody>
         <tr th:each="p : ${postulaciones}">
           <td data-label="Mascota" th:text="${p.mascota.nombre}"></td>
@@ -25,6 +25,10 @@
           <td data-label="Contrato">
             <a class="btn sm line" th:if="${p.estado.name() == 'COMPLETADA'}" th:href="@{/adoptante/postulaciones/{id}/contrato(id=${p.id})}" target="_blank" rel="noopener">Descargar PDF</a>
             <span class="muted small" th:unless="${p.estado.name() == 'COMPLETADA'}">—</span>
+          </td>
+          <td data-label="Chat">
+            <a class="btn sm line" th:href="@{/chat/postulaciones/{id}(id=${p.id})}"
+               th:text="${p.estado.name() == 'RECHAZADA'} ? 'Ver chat' : 'Abrir chat'">Chat</a>
           </td>
         </tr>
       </tbody>
