@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chat')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container narrow">
+  <!-- Token CSRF: el chat envía mensajes con fetch(), y Spring Security exige este token en todo POST. -->
+  <meta name="_csrf" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+  <a class="volver" th:href="${soyRefugio} ? @{/refugio/postulaciones} : @{/adoptante/postulaciones}">← Volver a las postulaciones</a>
+
+  <div class="auth-cabecera">
+    <h1 th:text="'Chat con ' + ${otro}">Chat</h1>
+    <p class="muted">
+      Postulación para <strong th:text="${postulacion.mascota.nombre}">Mascota</strong> ·
+      <span th:replace="~{fragments/layout :: estado(${postulacion.estado})}"></span>
+    </p>
+  </div>
+
+  <div class="alert warn" th:if="${cerrado}">
+    Esta postulación fue rechazada, así que el chat quedó en solo lectura.
+  </div>
+
+  <section class="x-chat">
+    <div id="chatMensajes" class="x-chat-mensajes" aria-live="polite"
+         th:data-url="@{/chat/postulaciones/{id}/mensajes(id=${postulacion.id})}">
+      <p id="chatVacio" class="muted small x-chat-vacio">Aún no hay mensajes. ¡Escribe el primero!</p>
+    </div>
+
+    <div id="chatError" class="alert err" role="alert" hidden></div>
+
+    <form id="chatForm" class="x-chat-form" th:unless="${cerrado}" autocomplete="off">
+      <label for="chatTexto" class="x-sr">Tu mensaje</label>
+      <textarea id="chatTexto" rows="2" th:maxlength="${maxCaracteres}"
+                placeholder="Escribe un mensaje… (Enter envía, Shift+Enter hace un salto de línea)"></textarea>
+      <button class="btn" type="submit">Enviar</button>
+    </form>
+  </section>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+
+<script>
+  (function () {
+    var caja = document.getElementById('chatMensajes');
+    var vacio = document.getElementById('chatVacio');
+    var errorBox = document.getElementById('chatError');
+    var form = document.getElementById('chatForm');
+    var texto = document.getElementById('chatTexto');
+    var url = caja.getAttribute('data-url');
+    var token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    var cabecera = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+    var ultimoId = 0;
+    var primeraCarga = true;
+
+    function mostrarError(msg) {
+      errorBox.textContent = msg;
+      errorBox.hidden = !msg;
+    }
+
+    // Se usa textContent (nunca innerHTML): así un mensaje con código no se ejecuta.
+    function pintar(m) {
+      var burbuja = document.createElement('div');
+      burbuja.className = 'x-msg' + (m.mio ? ' mio' : '');
+      var autor = document.createElement('span');
+      autor.className = 'x-msg-autor';
+      autor.textContent = m.mio ? 'Tú' : m.autor;
+      var cuerpo = document.createElement('p');
+      cuerpo.textContent = m.contenido;
+      var hora = document.createElement('time');
+      hora.textContent = m.fecha;
+      burbuja.appendChild(autor);
+      burbuja.appendChild(cuerpo);
+      burbuja.appendChild(hora);
+      caja.appendChild(burbuja);
+    }
+
+    function agregar(lista) {
+      if (!lista.length) { return; }
+      var estabaAbajo = caja.scrollHeight - caja.scrollTop - caja.clientHeight < 80;
+      lista.forEach(function (m) {
+        if (m.id > ultimoId) { pintar(m); ultimoId = m.id; }
+      });
+      vacio.hidden = true;
+      if (estabaAbajo || primeraCarga) { caja.scrollTop = caja.scrollHeight; }
+    }
+
+    function cargar() {
+      fetch(url + '?desde=' + ultimoId, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (lista) { agregar(lista); primeraCarga = false; })
+        .catch(function () { /* sin conexión: se reintenta en el siguiente ciclo */ });
+    }
+
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var contenido = texto.value.trim();
+        if (!contenido) { return; }
+        mostrarError('');
+        var cuerpo = new URLSearchParams();
+        cuerpo.append('contenido', contenido);
+        var headers = { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' };
+        headers[cabecera] = token;
+        fetch(url, { method: 'POST', headers: headers, body: cuerpo.toString(), credentials: 'same-origin' })
+          .then(function (r) {
+            return r.json().then(function (datos) { return { ok: r.ok, datos: datos }; });
+          })
+          .then(function (res) {
+            if (res.ok) {
+              texto.value = '';
+              primeraCarga = true;
+              agregar([res.datos]);
+              primeraCarga = false;
+            } else {
+              mostrarError(res.datos.error || 'No se pudo enviar el mensaje.');
+            }
+          })
+          .catch(function () { mostrarError('No se pudo enviar el mensaje. Revisa tu conexión.'); });
+      });
+      texto.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+      });
+    }
+
+    cargar();
+    // Cada 4 segundos busca mensajes nuevos (solo si la pestaña está visible).
+    setInterval(function () { if (!document.hidden) { cargar(); } }, 4000);
+  })();
+</script>
+</body>
+</html>

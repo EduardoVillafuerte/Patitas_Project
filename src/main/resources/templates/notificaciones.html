@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Notificaciones')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <h1>Notificaciones</h1>
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+  <div class="vacio" th:if="${#lists.isEmpty(lista)}">
+    <h2>No tienes notificaciones</h2>
+    <p class="muted">Aquí aparecerán los avisos sobre tus postulaciones, seguimientos, mensajes y ferias.</p>
+  </div>
+
+  <th:block th:unless="${#lists.isEmpty(lista)}">
+    <form class="x-notif-barra" th:action="@{/notificaciones/leer-todas}" method="post">
+      <button class="btn line" type="submit">Marcar todas como leídas</button>
+    </form>
+
+    <ul class="x-notif">
+      <li th:each="n : ${lista}" th:classappend="${n.leida} ? 'leida' : 'nueva'">
+        <!-- Al abrirla se marca como leída y te lleva a la pantalla relacionada. -->
+        <a th:href="@{/notificaciones/{id}/abrir(id=${n.id})}">
+          <span class="x-notif-punto" aria-hidden="true"></span>
+          <span class="x-notif-cuerpo">
+            <strong th:text="${n.titulo}">Título</strong>
+            <span th:text="${n.mensaje}">Mensaje</span>
+            <small class="muted" th:text="${#temporals.format(n.fecha, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</small>
+          </span>
+          <span class="tag" th:unless="${n.leida}">Nueva</span>
+        </a>
+      </li>
+    </ul>
+  </th:block>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

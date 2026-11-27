@@ -69,6 +69,8 @@ public class SecurityConfig {
                 .requestMatchers("/", "/public/**", "/login", "/registro", "/css/**", "/error").permitAll()
                 // Zonas protegidas por ROL. hasRole("ADMIN") busca la autoridad "ROLE_ADMIN"
                 // (la que construimos en Usuario.getAuthorities()).
+                // El chat de cada postulación lo usan adoptante y refugio (ChatService verifica que seas parte de ESA postulación).
+                .requestMatchers("/chat/**").hasAnyRole("ADOPTANTE", "REFUGIO")
                 .requestMatchers("/adoptante/**").hasRole("ADOPTANTE")
                 .requestMatchers("/refugio/**").hasRole("REFUGIO")
                 .requestMatchers("/admin/**").hasRole("ADMIN")

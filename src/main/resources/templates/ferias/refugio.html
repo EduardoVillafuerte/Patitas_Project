@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis ferias')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <a class="volver" th:href="@{/refugio/panel}">← Volver a mi refugio</a>
+  <h1>Mis ferias de adopción</h1>
+  <p class="muted">Publica una feria y los adoptantes podrán inscribirse. Aquí ves quién va a asistir.</p>
+  <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+  <div class="alert warn" th:if="${!usuario.activo}">Tu cuenta aún no está aprobada: no puedes publicar ferias todavía.</div>
+
+  <!-- Nueva feria -->
+  <details class="panel" th:if="${usuario.activo}" th:open="${abrirForm != null}">
+    <summary><strong>Publicar una feria nueva</strong></summary>
+    <form th:action="@{/refugio/ferias}" th:object="${form}" method="post">
+      <label for="titulo">Título <span class="req">*</span></label>
+      <input id="titulo" type="text" th:field="*{titulo}" th:errorclass="invalid" maxlength="100" required placeholder="Ej: Gran feria de adopción de primavera">
+      <div class="field-error" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}"></div>
+
+      <div class="row-campos">
+        <div class="col">
+          <label for="fecha">Fecha <span class="req">*</span></label>
+          <input id="fecha" type="date" th:field="*{fecha}" th:errorclass="invalid" required>
+          <div class="field-error" th:if="${#fields.hasErrors('fecha')}" th:errors="*{fecha}"></div>
+        </div>
+        <div class="col">
+          <label for="horaInicio">Hora de inicio <span class="req">*</span></label>
+          <input id="horaInicio" type="time" th:field="*{horaInicio}" th:errorclass="invalid" required>
+          <div class="field-error" th:if="${#fields.hasErrors('horaInicio')}" th:errors="*{horaInicio}"></div>
+        </div>
+        <div class="col">
+          <label for="horaFin">Hora de fin <span class="muted small">(opcional)</span></label>
+          <input id="horaFin" type="time" th:field="*{horaFin}" th:errorclass="invalid">
+          <div class="field-error" th:if="${#fields.hasErrors('horaFin')}" th:errors="*{horaFin}"></div>
+        </div>
+      </div>
+
+      <div class="row-campos">
+        <div class="col">
+          <label for="lugar">Lugar <span class="req">*</span></label>
+          <input id="lugar" type="text" th:field="*{lugar}" th:errorclass="invalid" maxlength="200" required placeholder="Ej: Parque La Carolina, frente al lago">
+          <div class="field-error" th:if="${#fields.hasErrors('lugar')}" th:errors="*{lugar}"></div>
+        </div>
+        <div class="col">
+          <label for="cupo">Cupo máximo <span class="muted small">(vacío = sin límite)</span></label>
+          <input id="cupo" type="number" th:field="*{cupo}" th:errorclass="invalid" min="1" max="10000">
+          <div class="field-error" th:if="${#fields.hasErrors('cupo')}" th:errors="*{cupo}"></div>
+        </div>
+      </div>
+
+      <label for="descripcion">Descripción</label>
+      <textarea id="descripcion" th:field="*{descripcion}" th:errorclass="invalid" rows="3" maxlength="1000"
+                placeholder="Qué mascotas llevarás, qué deben traer los adoptantes, etc."></textarea>
+      <div class="field-error" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
+
+      <p><button class="btn lg" type="submit">Publicar feria</button></p>
+    </form>
+  </details>
+
+  <div class="vacio" th:if="${#lists.isEmpty(items)}">
+    <h2>Todavía no publicas ferias</h2>
+  </div>
+
+  <article class="panel x-feria" th:each="item : ${items}">
+    <div class="row">
+      <div>
+        <h2 th:text="${item.feria.titulo}">Título</h2>
+        <p class="muted small"
+           th:text="${#temporals.format(item.feria.fecha, 'dd/MM/yyyy')} + ' · ' + ${#temporals.format(item.feria.horaInicio, 'HH:mm')} + (${item.feria.horaFin != null} ? ' a ' + ${#temporals.format(item.feria.horaFin, 'HH:mm')} : '') + ' · ' + ${item.feria.lugar}"></p>
+      </div>
+      <span class="tag" th:if="${!item.feria.activa}">Cancelada</span>
+      <span class="tag" th:if="${item.feria.activa and item.pasada}">Finalizada</span>
+      <span class="tag" th:if="${item.feria.activa and !item.pasada}">Programada</span>
+    </div>
+
+    <p class="small" th:text="${item.feria.cupo != null} ? 'Inscritos: ' + ${#lists.size(item.inscritos)} + ' de ' + ${item.feria.cupo} : 'Inscritos: ' + ${#lists.size(item.inscritos)} + ' (sin límite de cupo)'"></p>
+
+    <details class="detalles" th:if="${!#lists.isEmpty(item.inscritos)}">
+      <summary>Ver inscritos</summary>
+      <ul class="datos">
+        <li th:each="i : ${item.inscritos}" th:text="${i.adoptante.nombre} + ' · ' + ${i.adoptante.email}"></li>
+      </ul>
+    </details>
+
+    <form class="inline" th:if="${item.feria.activa and !item.pasada}"
+          th:action="@{/refugio/ferias/{id}/cancelar(id=${item.feria.id})}" method="post"
+          onsubmit="return confirm('¿Cancelar esta feria? Dejará de mostrarse a los adoptantes.');">
+      <button class="btn sm danger" type="submit">Cancelar feria</button>
+    </form>
+  </article>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

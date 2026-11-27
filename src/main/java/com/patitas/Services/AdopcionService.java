@@ -155,6 +155,7 @@ public class AdopcionService {
         s.setComentario(comentario);
         s.setFechaEntrega(LocalDateTime.now());
         s.setEstado(EnumEstadoSeguimiento.ENTREGADO);
+        notificaciones.evidenciaEntregada(s);
     }
 
     // ALERTAS: pendientes con fecha límite cumplida pasan a VENCIDO

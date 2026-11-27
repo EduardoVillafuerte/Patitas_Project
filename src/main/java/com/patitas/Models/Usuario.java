@@ -74,6 +74,14 @@ public class Usuario implements UserDetails {
     @Enumerated(EnumType.STRING)
     private EnumExperiencia experiencia;
 
+    // Ubicación (solo refugios): se muestra en el mapa público
+    @Column(length = 200)
+    private String direccion;
+    private Double latitud;
+    private Double longitud;
+
+    public boolean tieneUbicacion() { return latitud != null && longitud != null; }
+
     public boolean isActivo() { return estado == EnumEstadoCuenta.ACTIVO; }
     public boolean isBaneado() { return estado == EnumEstadoCuenta.BANNED; }
 

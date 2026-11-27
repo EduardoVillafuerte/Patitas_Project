@@ -1,6 +1,7 @@
 package com.patitas.Services;
 
 import com.patitas.dto.PerfilForm;
+import com.patitas.dto.UbicacionForm;
 import com.patitas.dto.RegistroForm;
 import com.patitas.exception.BusinessException;
 import com.patitas.validation.IdentificacionEc;
@@ -28,6 +29,7 @@ public class UsuarioService implements UserDetailsService {
 
     private final UsuarioRepository repo;
     private final PasswordEncoder encoder;
+    private final NotificacionService notificaciones;
 
     /**
      * LOGIN: Spring llama a este método con lo que el usuario escribió en el campo "username"
@@ -133,6 +135,18 @@ public class UsuarioService implements UserDetailsService {
         return (s == null || s.isBlank()) ? null : s.trim();
     }
 
+    /** Guarda dónde queda el refugio (dirección + punto en el mapa). */
+    @Transactional
+    public void guardarUbicacion(Usuario u, UbicacionForm f) {
+        if (u.getRol() != EnumRol.REFUGIO) {
+            throw new BusinessException("Solo los refugios tienen ubicación.");
+        }
+        u.setDireccion(f.getDireccion().trim());
+        u.setLatitud(f.getLatitud());
+        u.setLongitud(f.getLongitud());
+        repo.save(u);
+    }
+
     // ---- Acciones de administración ----
     /** Cambia el estado de una cuenta (aprobar refugio, banear, desbanear). */
     @Transactional
@@ -148,7 +162,18 @@ public class UsuarioService implements UserDetailsService {
                 && !IdentificacionEc.esRucValido(u.getDocumentoLegal())) {
             throw new BusinessException("No se puede aprobar: el RUC del refugio no es válido");
         }
+        EnumEstadoCuenta antes = u.getEstado();
         u.setEstado(nuevo);
         repo.save(u);
+
+        // Avisa al usuario del cambio (campanita + correo).
+        if (nuevo == EnumEstadoCuenta.BANNED) {
+            notificaciones.cuentaBaneada(u);
+        } else if (nuevo == EnumEstadoCuenta.ACTIVO && antes == EnumEstadoCuenta.PENDIENTE_APROBACION
+                && u.getRol() == EnumRol.REFUGIO) {
+            notificaciones.refugioAprobado(u);
+        } else if (nuevo == EnumEstadoCuenta.ACTIVO && antes == EnumEstadoCuenta.BANNED) {
+            notificaciones.cuentaReactivada(u);
+        }
     }
 }

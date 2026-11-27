@@ -21,7 +21,18 @@
         <span th:classappend="${item.score ge 75 ? 'high' : (item.score ge 50 ? 'mid' : 'low')}"
               th:style="'width:' + ${item.score} + '%'"></span>
       </div>
-      <p class="muted" th:text="${item.mascota.especie} + ' · ' + ${item.mascota.edadAnios} + ' años'"></p>
+      <p class="muted" th:text="${item.mascota.especie} + (${item.mascota.raza != null and !#strings.isEmpty(item.mascota.raza)} ? ' · ' + ${item.mascota.raza} : '') + ' · ' + ${item.mascota.edadAnios} + ' años'"></p>
+
+      <!-- ¿De qué refugio es? + enlace al mapa para ir en persona -->
+      <div class="x-refugio">
+        <div>
+          <span class="muted small">Refugio</span>
+          <strong th:text="${item.mascota.refugio.nombre}">Refugio</strong>
+          <span class="muted small" th:if="${item.mascota.refugio.direccion != null}" th:text="${item.mascota.refugio.direccion}"></span>
+        </div>
+        <a class="btn sm line" th:if="${item.mascota.refugio.tieneUbicacion()}"
+           th:href="@{/public/mapa(refugio=${item.mascota.refugio.id})}">Ver en el mapa</a>
+      </div>
       <p th:text="${item.mascota.descripcion}"></p>
       <div class="chips"><span class="tag" th:each="e : ${item.mascota.etiquetas}" th:text="${e.label}"></span></div>
 

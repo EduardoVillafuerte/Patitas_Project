@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap">
   <title th:text="${titulo} + ' | Patitas'">Patitas</title>
   <link rel="stylesheet" th:href="@{/css/app.css}">
+  <link rel="stylesheet" th:href="@{/css/extras.css}">
 </head>
 <body>
 
@@ -32,6 +33,8 @@
   <!-- Todos los enlaces viven dentro de .nav-links: en escritorio van en fila; en teléfono se despliegan con el botón. -->
   <div class="nav-links" id="menuPrincipal">
   <a th:href="@{/public/inicio}">Mascotas</a>
+  <a th:href="@{/public/mapa}">Mapa</a>
+  <a th:href="@{/public/ferias}">Ferias</a>
 
   <th:block sec:authorize="hasRole('ADOPTANTE')">
     <a th:href="@{/adoptante/catalogo}">Mi catálogo</a>
@@ -42,6 +45,7 @@
   <th:block sec:authorize="hasRole('REFUGIO')">
     <a th:href="@{/refugio/panel}">Mi refugio</a>
     <a th:href="@{/refugio/postulaciones}">Postulaciones</a>
+    <a th:href="@{/refugio/ferias}">Mis ferias</a>
   </th:block>
 
   <th:block sec:authorize="hasRole('ADMIN')">
@@ -57,6 +61,13 @@
        #authentication.name es el correo con el que se inició sesión (el "username" de Spring Security).
        El th:text con "? :" evita un error si el nombre llegara vacío. -->
   <th:block sec:authorize="isAuthenticated()">
+    <!-- CAMPANITA: muestra cuántos avisos sin leer tiene el usuario. @notificacionService es el bean de Spring. -->
+    <a class="campana" id="campana" th:href="@{/notificaciones}" th:data-contador="@{/notificaciones/contador}"
+       th:with="n=${@notificacionService.noLeidas()}"
+       th:attr="aria-label=${n > 0 ? 'Notificaciones: ' + n + ' sin leer' : 'Notificaciones'}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      <span class="campana-n" id="campanaN" th:text="${n > 99 ? '99+' : n}" th:hidden="${n == 0}">0</span>
+    </a>
     <div class="usuario-menu">
       <button type="button" class="usuario-boton" aria-haspopup="true" aria-expanded="false" aria-controls="usuarioMenu"
               th:attr="aria-label='Menú de usuario: ' + ${#authentication.name}">
@@ -122,6 +133,26 @@
           if (e.key === 'Escape' && !listaU.hidden) { cerrarU(); botonU.focus(); }
         });
       }
+    })();
+  </script>
+  <script>
+    // Campanita: cada 30 segundos pregunta cuántos avisos sin leer hay y actualiza el número (sin recargar la página).
+    (function () {
+      var c = document.getElementById('campana');
+      var n = document.getElementById('campanaN');
+      if (!c || !n || !window.fetch) return;
+      function pedir() {
+        fetch(c.dataset.contador, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (total) {
+            if (total === null || isNaN(total)) return;
+            n.textContent = total > 99 ? '99+' : total;
+            n.hidden = (total === 0);
+            c.setAttribute('aria-label', total > 0 ? 'Notificaciones: ' + total + ' sin leer' : 'Notificaciones');
+          })
+          .catch(function () { });
+      }
+      setInterval(function () { if (!document.hidden) pedir(); }, 30000);
     })();
   </script>
 </nav>

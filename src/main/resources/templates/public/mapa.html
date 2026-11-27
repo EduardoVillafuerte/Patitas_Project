@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mapa de refugios')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main class="container">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <h1>Refugios cerca de ti</h1>
+  <p class="muted">Encuentra un refugio, mira qué mascotas tiene disponibles y visítalo en persona.</p>
+
+  <form class="x-filtros" id="filtros" onsubmit="return false;">
+    <div>
+      <label for="mEspecie">Especie</label>
+      <select id="mEspecie"><option value="">Todas</option></select>
+    </div>
+    <div>
+      <label for="mRaza">Raza</label>
+      <input id="mRaza" type="text" maxlength="60" placeholder="Ej: Labrador">
+    </div>
+    <div class="x-filtros-btns">
+      <button class="btn line" type="button" id="mLimpiar">Limpiar</button>
+    </div>
+  </form>
+
+  <div class="x-mapa-layout">
+    <div class="x-mapa" id="mapa" role="application" aria-label="Mapa de refugios"
+         th:data-url="@{/public/mapa/datos}" th:data-mascota="@{/adoptante/mascotas/}"></div>
+    <aside class="x-mapa-lista" aria-label="Lista de refugios">
+      <p id="mVacio" class="muted small" hidden>No hay refugios que coincidan.</p>
+      <ul id="mLista"></ul>
+    </aside>
+  </div>
+  <p class="muted small">Para ver el detalle de una mascota y postular necesitas una cuenta de adoptante.</p>
+</main>
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  (function () {
+    var elMapa = document.getElementById('mapa');
+    var urlDatos = elMapa.getAttribute('data-url');
+    var urlMascota = elMapa.getAttribute('data-mascota');
+    var selEspecie = document.getElementById('mEspecie');
+    var inRaza = document.getElementById('mRaza');
+    var lista = document.getElementById('mLista');
+    var vacio = document.getElementById('mVacio');
+    var enfocar = new URLSearchParams(window.location.search).get('refugio');
+
+    var mapa = L.map('mapa').setView([-0.1807, -78.4678], 11);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; contribuidores de OpenStreetMap'
+    }).addTo(mapa);
+    var capa = L.layerGroup().addTo(mapa);
+    var marcadores = {};
+    var refugios = [];
+
+    function norm(s) { return (s || '').toString().trim().toLowerCase(); }
+
+    function etiqueta(m) {
+      var t = m.especie;
+      if (m.raza) { t += ' · ' + m.raza; }
+      return t;
+    }
+
+    function coincide(m) {
+      var esp = norm(selEspecie.value);
+      var raz = norm(inRaza.value);
+      if (esp && norm(m.especie) !== esp) { return false; }
+      if (raz && norm(m.raza).indexOf(raz) === -1) { return false; }
+      return true;
+    }
+
+    // Se arma con createElement/textContent (nunca innerHTML): los nombres los escriben los usuarios.
+    function popup(r, mascotas) {
+      var d = document.createElement('div');
+      d.className = 'x-popup';
+      var h = document.createElement('strong');
+      h.textContent = r.nombre;
+      d.appendChild(h);
+      if (r.direccion) {
+        var dir = document.createElement('p');
+        dir.textContent = r.direccion;
+        d.appendChild(dir);
+      }
+      var n = document.createElement('p');
+      n.className = 'x-popup-n';
+      n.textContent = mascotas.length === 1 ? '1 mascota disponible' : mascotas.length + ' mascotas disponibles';
+      d.appendChild(n);
+      var ul = document.createElement('ul');
+      mascotas.slice(0, 6).forEach(function (m) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = urlMascota + m.id;
+        a.textContent = m.nombre + ' (' + etiqueta(m) + ')';
+        li.appendChild(a);
+        ul.appendChild(li);
+      });
+      d.appendChild(ul);
+      if (mascotas.length > 6) {
+        var mas = document.createElement('p');
+        mas.className = 'x-popup-n';
+        mas.textContent = 'y ' + (mascotas.length - 6) + ' más…';
+        d.appendChild(mas);
+      }
+      var ruta = document.createElement('a');
+      ruta.href = 'https://www.google.com/maps/dir/?api=1&destination=' + r.latitud + ',' + r.longitud;
+      ruta.target = '_blank';
+      ruta.rel = 'noopener';
+      ruta.textContent = 'Cómo llegar';
+      d.appendChild(ruta);
+      return d;
+    }
+
+    function pintar() {
+      capa.clearLayers();
+      lista.innerHTML = '';
+      marcadores = {};
+      var hayFiltro = norm(selEspecie.value) !== '' || norm(inRaza.value) !== '';
+      var puntos = [];
+
+      refugios.forEach(function (r) {
+        var visibles = r.mascotas.filter(coincide);
+        if (hayFiltro && visibles.length === 0) { return; }
+
+        var marcador = L.marker([r.latitud, r.longitud]).bindPopup(popup(r, visibles));
+        marcador.addTo(capa);
+        marcadores[r.id] = marcador;
+        puntos.push([r.latitud, r.longitud]);
+
+        var li = document.createElement('li');
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'x-ref-item';
+        var nombre = document.createElement('strong');
+        nombre.textContent = r.nombre;
+        var info = document.createElement('span');
+        info.className = 'muted small';
+        info.textContent = visibles.length === 1 ? '1 mascota' : visibles.length + ' mascotas';
+        b.appendChild(nombre);
+        b.appendChild(info);
+        b.addEventListener('click', function () {
+          mapa.setView([r.latitud, r.longitud], 16);
+          marcador.openPopup();
+        });
+        li.appendChild(b);
+        lista.appendChild(li);
+      });
+
+      vacio.hidden = puntos.length > 0;
+      if (puntos.length > 0) {
+        mapa.fitBounds(L.latLngBounds(puntos), { padding: [30, 30], maxZoom: 15 });
+      }
+    }
+
+    function llenarEspecies() {
+      var vistas = {};
+      refugios.forEach(function (r) {
+        r.mascotas.forEach(function (m) {
+          var k = norm(m.especie);
+          if (k && !vistas[k]) { vistas[k] = m.especie.charAt(0).toUpperCase() + m.especie.slice(1).toLowerCase(); }
+        });
+      });
+      Object.keys(vistas).sort().forEach(function (k) {
+        var o = document.createElement('option');
+        o.value = k;
+        o.textContent = vistas[k];
+        selEspecie.appendChild(o);
+      });
+    }
+
+    selEspecie.addEventListener('change', pintar);
+    inRaza.addEventListener('input', pintar);
+    document.getElementById('mLimpiar').addEventListener('click', function () {
+      selEspecie.value = '';
+      inRaza.value = '';
+      pintar();
+    });
+
+    fetch(urlDatos, { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (datos) {
+        refugios = datos;
+        llenarEspecies();
+        pintar();
+        if (enfocar && marcadores[enfocar]) {
+          var r = refugios.filter(function (x) { return String(x.id) === enfocar; })[0];
+          mapa.setView([r.latitud, r.longitud], 16);
+          marcadores[enfocar].openPopup();
+        }
+      })
+      .catch(function () { vacio.textContent = 'No se pudo cargar el mapa.'; vacio.hidden = false; });
+  })();
+</script>
+</body>
+</html>

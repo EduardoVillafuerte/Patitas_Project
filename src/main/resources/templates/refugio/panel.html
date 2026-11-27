@@ -14,6 +14,8 @@
     <div class="acciones" th:if="${usuario.activo}">
       <a class="btn lg" th:href="@{/refugio/mascotas/nueva}">Registrar mascota</a>
       <a class="btn line lg" th:href="@{/refugio/postulaciones}">Ver postulaciones</a>
+      <a class="btn line lg" th:href="@{/refugio/ferias}">Mis ferias</a>
+      <a class="btn line lg" th:href="@{/refugio/ubicacion}">Mi ubicación</a>
     </div>
   </section>
 
@@ -22,6 +24,12 @@
   <div class="alert warn" th:if="${!usuario.activo}">
     <strong>Tu cuenta está pendiente de aprobación.</strong>
     Un administrador está verificando tu RUC o registro de ONG. En cuanto lo apruebe podrás publicar mascotas. ¡Gracias por tu paciencia!
+  </div>
+
+  <div class="alert warn" th:if="${usuario.activo and !usuario.tieneUbicacion()}">
+    <strong>Aún no apareces en el mapa.</strong>
+    Marca dónde queda tu refugio para que los adoptantes puedan visitarte.
+    <a th:href="@{/refugio/ubicacion}">Marcar ubicación</a>
   </div>
 
   <th:block th:if="${usuario.activo}">
